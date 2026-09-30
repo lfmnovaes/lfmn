@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "title": "Luis Fernando — Software Engineer",
+    "description": "Full-stack software engineer based in Brazil. Building web applications, modernizing legacy systems, and improving performance with React, Next.js, TypeScript, and Ruby on Rails."
+  },
+  "nav": {
+    "skip": "Skip to content",
+    "normal": "Normal",
+    "universe": "Universe",
+    "wip": "Work in progress",
+    "lightsOn": "Turn the lights on",
+    "lightsOff": "Turn the lights off"
+  },
+  "hero": {
+    "first": "Luis",
+    "last": "Fernando",
+    "roles": [
+      "Full-Stack Developer",
+      "Software Engineer",
+      "Frontend Developer",
+      "Backend Developer",
+      "React Native Developer",
+      "React Developer",
+      "Next.js Developer",
+      "TypeScript Developer",
+      "Web Developer"
+    ],
+    "description": "I build web applications and modernize legacy systems, improving everything from the interface to the infrastructure.",
+    "greeting": "Hello, I'm",
+    "experience": "6+ years of experience",
+    "downloads": "Download my résumé",
+    "resumeEn": "Résumé · English",
+    "resumePt": "Currículo · pt-BR",
+    "portrait": "Portrait coming soon",
+    "portraitNote": "A place for the person behind the code.",
+    "badges": [
+      "Responsive UI",
+      "API Architecture",
+      "Performance",
+      "Clean Code",
+      "Teamwork",
+      "Web & Mobile"
+    ]
+  },
+  "technologies": {
+    "title": "From interface to infrastructure.",
+    "intro": "Tools I've used to build, test, and keep things running.",
+    "categories": ["Interfaces & mobile", "APIs & data", "Testing & observability"],
+    "instructions": "Hover over or focus a row to pause it. Hover over a card to enlarge it. Reduced motion uses a slower carousel."
+  },
+  "engineering": {
+    "label": "ENGINEERING / FROM IDEA TO DELIVERY",
+    "title": "The whole picture.",
+    "accent": "The details that matter.",
+    "intro": "Interfaces, APIs, mobile, and the work that keeps them reliable.",
+    "servicesTitle": "Across the stack",
+    "servicesIntro": "Connecting what people see with the systems behind it.",
+    "services": [
+      {
+        "title": "Interfaces",
+        "detail": "React · Next.js · TypeScript"
+      },
+      {
+        "title": "APIs & data",
+        "detail": "NestJS · Rails · PostgreSQL"
+      },
+      {
+        "title": "Auth & payments",
+        "detail": "NextAuth · E-commerce"
+      },
+      {
+        "title": "Mobile",
+        "detail": "React Native · Shared standards"
+      },
+      {
+        "title": "Performance",
+        "detail": "Caching · Lazy loading"
+      },
+      {
+        "title": "Observability",
+        "detail": "Sentry · Betterstack"
+      }
+    ],
+    "flowTitle": "Connected by design",
+    "flowIntro": "From a responsive screen to an API and the data it needs.",
+    "nodes": ["Browser", "API", "Database"],
+    "flowCaption": "Clear boundaries. Useful responses. A complete user experience.",
+    "qualityTitle": "Code people can work with",
+    "qualityIntro": "Shared standards, readable code, and tests that make changes easier to trust.",
+    "practices": ["Readable code", "Meaningful tests", "Shared standards", "Observability"],
+    "qualityNote": "A practical approach to modernization, from the first change to the next teammate."
+  },
+  "market": {
+    "eyebrow": "A LIVE DATA EXPERIMENT",
+    "title": "A pulse on the market",
+    "intro": "Candlesticks and trading volume, connected to real market data.",
+    "instrument": "Market instrument",
+    "interval": "Candle interval",
+    "loading": "Loading market chart and data",
+    "fallback": "Explore PAX Gold, Bitcoin, and Ethereum prices and trading volume.",
+    "unavailable": "Market data couldn't load. Try again when the connection is available.",
+    "high": "Candle high",
+    "low": "Candle low",
+    "volume": "Candle volume",
+    "received": "Last received",
+    "retry": "Retry",
+    "note": "Quoted in USDT. Chart times are UTC; volume is for the selected candle.",
+    "source": "Data",
+    "states": {
+      "idle": "On demand",
+      "loading": "Loading",
+      "connecting": "Connecting",
+      "live": "Live",
+      "stale": "Data stale",
+      "offline": "Offline",
+      "paused": "Updates paused",
+      "error": "Unavailable"
+    }
+  },
+  "work": {
+    "label": "SELECTED CONTRIBUTIONS",
+    "title": "Good software makes",
+    "accent": "a real difference.",
+    "intro": "A few ways I've helped teams move forward.",
+    "items": [
+      {
+        "company": "MYCAREFORCE",
+        "title": "Giving legacy systems a new direction.",
+        "body": "Restructured frontend, backend, and mobile applications. Introduced project standards and used observability to understand what needed attention.",
+        "tags": ["Next.js", "NestJS", "React Native"]
+      },
+      {
+        "company": "TABAS · VIA PLATHANUS",
+        "title": "Less waiting. More doing.",
+        "body": "Improved application performance with caching and lazy loading across Next.js and Ruby on Rails, reducing load times and infrastructure costs.",
+        "tags": ["Performance", "Ruby on Rails", "Next.js"]
+      },
+      {
+        "company": "BLUEGROUND · VIA PLATHANUS",
+        "title": "Moving an internal tool into the modern web.",
+        "body": "Joined the BlueBrain team to help replace a Java Applet with React, improving accessibility, performance, and resilience.",
+        "tags": ["React", "Modernization", "Accessibility"]
+      }
+    ]
+  },
+  "experience": {
+    "label": "THE JOURNEY",
+    "title": "Built along the way.",
+    "intro": "Different teams, different challenges. Always something to learn.",
+    "items": [
+      {
+        "company": "MyCareforce",
+        "role": "Senior Software Engineer",
+        "date": "Feb 2025 — Aug 2026",
+        "mode": "Remote",
+        "body": "Modernization across web and mobile. Shared standards, testing, and observability with an international team."
+      },
+      {
+        "company": "Plathanus",
+        "role": "Full Stack Engineer",
+        "date": "May 2022 — May 2024",
+        "mode": "Remote",
+        "body": "National and international projects, including Tabas and Blueground. Frontend leadership for an e-commerce platform with authentication and payments."
+      },
+      {
+        "company": "Independent",
+        "role": "Full Stack Developer",
+        "date": "2020 — 2022",
+        "mode": "Remote",
+        "body": "Consulting and web development for small businesses, with a focus on usable interfaces and better web performance."
+      },
+      {
+        "company": "COPPE / UFRJ",
+        "role": "Web Developer",
+        "date": "2016 — 2019",
+        "mode": "On-site",
+        "body": "Internal tools and CRUD applications using JavaScript, C#, ASP.NET, and SQL Server in an academic incubator."
+      }
+    ]
+  },
+  "contact": {
+    "label": "WHAT'S NEXT",
+    "title": "Great things start",
+    "accent": "with a conversation.",
+    "body": "Have something in mind? I'd like to hear about it.",
+    "email": "Say hello",
+    "footer": "Thoughtfully built on a small blue planet."
+  }
+}
