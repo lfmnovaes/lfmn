@@ -15,6 +15,16 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 Edit `src/app/[locale]/page.tsx` to update the page. Changes appear automatically during development.
 
+## Project structure
+
+- `src/app/[locale]/page.tsx` composes the portfolio and generates localized metadata.
+- `src/messages` holds English and Portuguese content. Section props use its inferred types.
+- `src/components` holds portfolio sections and interactive components; `ui` holds the shared Base UI primitives.
+- Static sections and portrait markup stay on the server. `PortraitMagnet`, `NameHover`, and `TechnologyCarousel` accept rendered children and own only their browser interactions.
+- `src/hooks/use-market-chart.ts` owns visibility, requests, WebSocket retries, and chart cleanup. Selection state stays in `MarketPanel`.
+- `src/lib/market-data.ts` validates external data; `market-chart.ts` adapts Lightweight Charts and loads on demand.
+- `src/app/globals.css` holds shared tokens, section styles, and responsive rules. The name decoration uses a colocated CSS module.
+
 ## Production
 
 ```sh

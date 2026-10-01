@@ -81,20 +81,16 @@ export function HeaderControls({
           <Grid2X2 aria-hidden="true" />
           <span className="mode-label">{normal}</span>
         </Button>
-        <TooltipProvider>
-          <Tooltip open={wipOpen} onOpenChange={setWipOpen}>
+        <TooltipProvider delay={0} closeDelay={0}>
+          <Tooltip open={wipOpen} onOpenChange={setWipOpen} disableHoverablePopup>
             <TooltipTrigger
               render={<Button variant="ghost" className="mode-button wip-button" />}
               aria-disabled="true"
               aria-label={`${universe} — ${wip}`}
+              closeOnClick={false}
               onMouseEnter={() => setWipOpen(true)}
               onMouseLeave={() => setWipOpen(false)}
-              onFocus={() => setWipOpen(true)}
-              onBlur={() => setWipOpen(false)}
               onClick={() => setWipOpen(true)}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') setWipOpen(false);
-              }}
             >
               <Rocket aria-hidden="true" />
               <span className="mode-label">{universe}</span>

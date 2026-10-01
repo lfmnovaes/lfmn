@@ -85,6 +85,26 @@ for (const locale of ['en', 'pt-BR']) {
   });
 }
 
+test('WIP explanation opens on hover, focus, and click, and dismisses on exit or Escape', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const trigger = page.getByRole('button', { name: 'Universe — Work in progress' });
+  const tooltip = page.getByRole('tooltip');
+  await trigger.hover();
+  await expect(tooltip).toHaveText('Work in progress');
+  await page.mouse.move(0, 0);
+  await expect(tooltip).toHaveCount(0);
+  await trigger.focus();
+  await expect(tooltip).toHaveText('Work in progress');
+  await page.getByRole('button', { name: 'Normal', exact: true }).focus();
+  await expect(tooltip).toHaveCount(0);
+  await trigger.click({ force: true });
+  await expect(tooltip).toHaveText('Work in progress');
+  await page.keyboard.press('Escape');
+  await expect(tooltip).toHaveCount(0);
+});
+
 test('role starts automatically, holds for four seconds, and erases fully', async ({ page }) => {
   const start = new Date('2026-09-30T12:00:00Z');
   await page.clock.install({ time: start });

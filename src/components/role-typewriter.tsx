@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 
 // All timing adjustments live here. Each full role is held for four seconds.
-export const ROLE_TIMING = { type: 48, erase: 24, hold: 4000, between: 240, start: 450 };
+const ROLE_TIMING = { type: 48, erase: 24, hold: 4000, between: 240, start: 450 };
 export function RoleTypewriter({ roles }: { roles: string[] }) {
   const [text, setText] = useState(roles[0]);
   useEffect(() => {

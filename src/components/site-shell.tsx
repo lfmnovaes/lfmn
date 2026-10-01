@@ -2,7 +2,6 @@
 
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
-import { useReducedMotion } from '@/lib/use-reduced-motion';
 
 const LightingContext = createContext({
   lights: false,
@@ -12,7 +11,6 @@ export const useLighting = () => useContext(LightingContext);
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const [lights, setLights] = useState(false);
-  const reduced = useReducedMotion();
   const shell = useRef<HTMLDivElement>(null);
   const transition = useRef<ReturnType<Document['startViewTransition']> | null>(null);
   const reveal = useRef<Animation | null>(null);
@@ -74,6 +72,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
   );
 
   function toggleLights(origin: HTMLElement) {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     transition.current?.skipTransition();
     reveal.current?.cancel();
     const update = () => flushSync(() => setLights((value) => !value));

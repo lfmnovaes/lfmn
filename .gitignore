@@ -8,3 +8,5 @@ playwright-report/
 .env*
 !.env.example
 next-env.d.ts
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
