@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/next';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { notFound } from 'next/navigation';
@@ -37,6 +38,7 @@ export default async function Layout({
     <html lang={locale} className={`${geist.variable} ${display.variable}`}>
       <body>
         <SiteShell>{children}</SiteShell>
+        <Analytics />
         <noscript>
           <style>{`
             .js-control { display: none }
