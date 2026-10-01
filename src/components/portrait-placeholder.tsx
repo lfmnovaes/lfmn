@@ -2,7 +2,6 @@
 
 import { UserRound } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { useReducedMotion } from '@/lib/use-reduced-motion';
 
 export function PortraitPlaceholder({
   label,
@@ -14,28 +13,28 @@ export function PortraitPlaceholder({
   badges: string[];
 }) {
   const portrait = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
   useEffect(() => {
     const anchors = portrait.current?.querySelectorAll<HTMLElement>('.badge-anchor');
     if (!anchors) return;
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
     let x = 0;
     let y = 0;
+    let pointerActive = false;
     const reset = () => {
       cancelAnimationFrame(frame);
       frame = 0;
+      pointerActive = false;
       for (const anchor of anchors) {
         anchor.style.setProperty('--magnet-x', '0px');
         anchor.style.setProperty('--magnet-y', '0px');
         anchor.dataset.magnetic = 'off';
       }
     };
-    const move = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') return;
-      x = event.clientX;
-      y = event.clientY;
+    const render = () => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
+        const reduced = preference.matches;
         for (const anchor of anchors) {
           const rect = anchor.getBoundingClientRect();
           const dx = x - rect.left - rect.width / 2;
@@ -60,6 +59,16 @@ export function PortraitPlaceholder({
         frame = 0;
       });
     };
+    const move = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
+      x = event.clientX;
+      y = event.clientY;
+      pointerActive = true;
+      render();
+    };
+    const preferenceChanged = () => {
+      if (pointerActive) render();
+    };
     const exit = (event: PointerEvent) => {
       if (!event.relatedTarget) reset();
     };
@@ -67,14 +76,16 @@ export function PortraitPlaceholder({
     window.addEventListener('pointerout', exit);
     window.addEventListener('scroll', reset, { passive: true });
     document.addEventListener('visibilitychange', reset);
+    preference.addEventListener('change', preferenceChanged);
     return () => {
       reset();
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerout', exit);
       window.removeEventListener('scroll', reset);
       document.removeEventListener('visibilitychange', reset);
+      preference.removeEventListener('change', preferenceChanged);
     };
-  }, [reduced]);
+  }, []);
   return (
     <div className="portrait-stage" ref={portrait} data-testid="portrait-stage">
       <div className="portrait-placeholder" role="img" aria-label={label}>
@@ -88,7 +99,7 @@ export function PortraitPlaceholder({
           <small>{note}</small>
         </div>
       </div>
-      <ul className="portrait-badges" aria-label={label}>
+      <ul className="portrait-badges m-0 list-none p-0" aria-label={label}>
         {badges.map((badge, index) => (
           <li className={`badge-anchor badge-${index + 1}`} key={badge}>
             <span className="magnetic-badge">

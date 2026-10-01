@@ -1,0 +1,192 @@
+.cover {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  padding: 6px 12px 10px;
+  font-size: clamp(42px, 4.8vw, 68px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  isolation: isolate;
+  transition: background 200ms;
+}
+.cover::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background:
+    radial-gradient(circle at 4px 4px, var(--foreground) 3px, transparent 4px),
+    radial-gradient(circle at calc(100% - 4px) 4px, var(--foreground) 3px, transparent 4px),
+    radial-gradient(circle at 4px calc(100% - 4px), var(--foreground) 3px, transparent 4px),
+    radial-gradient(
+      circle at calc(100% - 4px) calc(100% - 4px),
+      var(--foreground) 3px,
+      transparent 4px
+    );
+  pointer-events: none;
+  animation: pulse 2s ease-in-out infinite alternate;
+}
+.name {
+  --shake-distance: 3px;
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  letter-spacing: -0.025em;
+  transition:
+    scale 200ms,
+    color 200ms;
+}
+.beams,
+.particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.beam {
+  position: absolute;
+  left: calc(-1 * var(--length));
+  width: var(--length);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  animation: sweep var(--duration) linear var(--delay) infinite;
+}
+.particles {
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.star {
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: #fff;
+  animation:
+    drift var(--drift-duration) linear var(--star-delay) infinite alternate,
+    twinkle var(--twinkle-duration) ease-in-out var(--star-delay) infinite;
+  animation-play-state: paused;
+}
+@media (hover: hover) {
+  .cover:hover {
+    background: #171717;
+  }
+  .cover:hover::after {
+    visibility: hidden;
+  }
+  .cover:hover .name {
+    color: #fff;
+    scale: 0.8;
+    animation: flight 180ms linear infinite;
+  }
+  .cover:hover .particles {
+    opacity: 1;
+  }
+  .cover:hover .star {
+    animation-play-state: running;
+  }
+}
+@keyframes sweep {
+  70%,
+  100% {
+    translate: var(--travel) 0;
+  }
+}
+@keyframes drift {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: var(--dx) var(--dy);
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.08;
+  }
+  27% {
+    opacity: var(--peak);
+  }
+  61% {
+    opacity: 0.18;
+  }
+  83% {
+    opacity: calc(var(--peak) * 0.6);
+  }
+}
+@keyframes flight {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  9% {
+    translate: calc(var(--shake-distance) * 0.4) calc(var(--shake-distance) * -0.6);
+  }
+  23% {
+    translate: calc(var(--shake-distance) * -0.9) calc(var(--shake-distance) * 0.2);
+  }
+  37% {
+    translate: calc(var(--shake-distance) * 0.6) calc(var(--shake-distance) * 0.8);
+  }
+  48% {
+    translate: calc(var(--shake-distance) * -0.3) calc(var(--shake-distance) * -0.7);
+  }
+  64% {
+    translate: calc(var(--shake-distance) * 0.8) calc(var(--shake-distance) * -0.2);
+  }
+  79% {
+    translate: calc(var(--shake-distance) * -0.7) calc(var(--shake-distance) * 0.5);
+  }
+  91% {
+    translate: calc(var(--shake-distance) * 0.2) calc(var(--shake-distance) * -0.9);
+  }
+}
+@keyframes pulse {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+@media (max-width: 900px) {
+  .cover {
+    font-size: 58px;
+  }
+}
+@media (max-width: 600px) {
+  .cover {
+    font-size: 43px;
+    padding: 5px 9px 8px;
+  }
+}
+@media (max-width: 360px) {
+  .cover {
+    font-size: 37px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .beam {
+    animation-duration: calc(var(--duration) * 3);
+  }
+  .star {
+    animation-duration: calc(var(--drift-duration) * 3), calc(var(--twinkle-duration) * 2);
+  }
+  .cover:hover .name {
+    --shake-distance: 1px;
+    animation-duration: 400ms;
+    scale: 0.9;
+  }
+  .cover::after {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+@media print {
+  .beams,
+  .particles,
+  .cover::after {
+    display: none;
+  }
+}

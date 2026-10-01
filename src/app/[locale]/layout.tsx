@@ -40,6 +40,7 @@ export default async function Layout({
         <noscript>
           <style>{`
             .js-control { display: none }
+            .technology-viewport { cursor: auto; user-select: text; touch-action: auto }
             [data-motion] .technology-track, [data-motion] .service-track, [data-motion] .quality-track { display: block; width: auto; animation: none; transform: none }
             [data-motion] .technology-group { display: grid; padding-right: 0 }
             [data-motion] .technology-card { width: auto }

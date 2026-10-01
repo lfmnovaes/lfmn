@@ -1,10 +1,53 @@
 'use client';
 import { Grid2X2, Moon, Rocket, Sun } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Github } from './brand-icons';
 import { useLighting } from './site-shell';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+
+export function Wordmark({ href, label }: { href: string; label: string }) {
+  const frame = useRef(0);
+  useEffect(() => {
+    const cancel = () => {
+      cancelAnimationFrame(frame.current);
+      frame.current = 0;
+    };
+    window.addEventListener('wheel', cancel, { passive: true });
+    window.addEventListener('touchstart', cancel, { passive: true });
+    window.addEventListener('keydown', cancel);
+    return () => {
+      cancel();
+      window.removeEventListener('wheel', cancel);
+      window.removeEventListener('touchstart', cancel);
+      window.removeEventListener('keydown', cancel);
+    };
+  }, []);
+  return (
+    <a
+      href={href}
+      className="wordmark"
+      aria-label={label}
+      onClick={(event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        cancelAnimationFrame(frame.current);
+        const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 250 : 350;
+        const from = window.scrollY;
+        const started = performance.now();
+        const step = (now: number) => {
+          const progress = Math.min((now - started) / duration, 1);
+          window.scrollTo({ top: from * (1 - progress) ** 3, behavior: 'instant' });
+          frame.current = progress < 1 ? requestAnimationFrame(step) : 0;
+        };
+        frame.current = requestAnimationFrame(step);
+      }}
+    >
+      lfmn
+    </a>
+  );
+}
+
 export function HeaderControls({
   locale,
   normal,
@@ -25,7 +68,7 @@ export function HeaderControls({
   const { lights, toggleLights } = useLighting();
   const [wipOpen, setWipOpen] = useState(false);
   return (
-    <div className="header-controls">
+    <div className="header-controls ml-auto flex items-center gap-2">
       <button
         className="skip-link js-control"
         type="button"

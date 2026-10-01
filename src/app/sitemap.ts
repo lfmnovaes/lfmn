@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
+import { getSiteOrigin } from '@/lib/site-origin';
 export default function sitemap(): MetadataRoute.Sitemap {
-  const origin = process.env.NEXT_PUBLIC_SITE_URL;
+  const origin = getSiteOrigin();
   if (!origin) return [];
   return ['', '/pt-BR'].map((path) => ({
     url: `${origin}${path}`,

@@ -46,7 +46,7 @@
     "title": "Da interface à infraestrutura.",
     "intro": "Ferramentas que usei para construir, testar e manter tudo funcionando.",
     "categories": ["Interfaces e mobile", "APIs e dados", "Testes e observabilidade"],
-    "instructions": "Passe o mouse ou dê foco a uma linha para pausá-la. Passe o mouse sobre um cartão para ampliá-lo. O movimento reduzido usa um carrossel mais lento."
+    "instructions": "Arraste uma linha para explorar suas tecnologias. Passe o mouse ou dê foco a uma linha para pausá-la; quando estiver em foco, use as setas para a esquerda e a direita. Passe o mouse sobre um cartão para ampliá-lo. O movimento reduzido usa um carrossel mais lento."
   },
   "engineering": {
     "label": "ENGENHARIA / DA IDEIA À ENTREGA",
@@ -117,32 +117,6 @@
       "error": "Indisponível"
     }
   },
-  "work": {
-    "label": "ALGUMAS CONTRIBUIÇÕES",
-    "title": "Bom software faz",
-    "accent": "a diferença.",
-    "intro": "Algumas formas de ajudar equipes a seguir em frente.",
-    "items": [
-      {
-        "company": "MYCAREFORCE",
-        "title": "Uma nova direção para sistemas legados.",
-        "body": "Reestruturei aplicações frontend, backend e mobile. Introduzi padrões de projeto e usei observabilidade para entender o que precisava de atenção.",
-        "tags": ["Next.js", "NestJS", "React Native"]
-      },
-      {
-        "company": "TABAS · VIA PLATHANUS",
-        "title": "Menos espera. Mais resultado.",
-        "body": "Melhorei a performance com cache e lazy loading em Next.js e Ruby on Rails, reduzindo tempos de carregamento e custos de infraestrutura.",
-        "tags": ["Performance", "Ruby on Rails", "Next.js"]
-      },
-      {
-        "company": "BLUEGROUND · VIA PLATHANUS",
-        "title": "Uma ferramenta interna na web moderna.",
-        "body": "Participei da equipe BlueBrain para substituir um Java Applet por React, melhorando a acessibilidade, a performance e a resiliência.",
-        "tags": ["React", "Modernização", "Acessibilidade"]
-      }
-    ]
-  },
   "experience": {
     "label": "A TRAJETÓRIA",
     "title": "Construindo pelo caminho.",
@@ -153,28 +127,52 @@
         "role": "Engenheiro de Software Sênior",
         "date": "fev. 2025 — ago. 2026",
         "mode": "Remoto",
-        "body": "Modernização de aplicações web e mobile. Padrões compartilhados, testes e observabilidade com uma equipe internacional."
+        "body": "Modernização de aplicações web e mobile. Padrões compartilhados, testes e observabilidade com uma equipe internacional.",
+        "contributions": [
+          {
+            "company": "MYCAREFORCE",
+            "title": "Uma nova direção para sistemas legados.",
+            "body": "Reestruturei aplicações frontend, backend e mobile. Introduzi padrões de projeto e usei observabilidade para entender o que precisava de atenção.",
+            "tags": ["Next.js", "NestJS", "React Native"]
+          }
+        ]
       },
       {
         "company": "Plathanus",
         "role": "Engenheiro Full Stack",
         "date": "mai. 2022 — mai. 2024",
         "mode": "Remoto",
-        "body": "Projetos nacionais e internacionais, incluindo Tabas e Blueground. Liderança frontend em um e-commerce com autenticação e pagamentos."
+        "body": "Projetos nacionais e internacionais, incluindo Tabas e Blueground. Liderança frontend em um e-commerce com autenticação e pagamentos.",
+        "contributions": [
+          {
+            "company": "TABAS · VIA PLATHANUS",
+            "title": "Menos espera. Mais resultado.",
+            "body": "Melhorei a performance com cache e lazy loading em Next.js e Ruby on Rails, reduzindo tempos de carregamento e custos de infraestrutura.",
+            "tags": ["Performance", "Ruby on Rails", "Next.js"]
+          },
+          {
+            "company": "BLUEGROUND · VIA PLATHANUS",
+            "title": "Uma ferramenta interna na web moderna.",
+            "body": "Participei da equipe BlueBrain para substituir um Java Applet por React, melhorando a acessibilidade, a performance e a resiliência.",
+            "tags": ["React", "Modernização", "Acessibilidade"]
+          }
+        ]
       },
       {
         "company": "Autônomo",
         "role": "Desenvolvedor Full Stack",
         "date": "2020 — 2022",
         "mode": "Remoto",
-        "body": "Consultoria e desenvolvimento web para pequenos negócios, com foco em interfaces intuitivas e melhor performance."
+        "body": "Consultoria e desenvolvimento web para pequenos negócios, com foco em interfaces intuitivas e melhor performance.",
+        "contributions": []
       },
       {
         "company": "COPPE / UFRJ",
         "role": "Desenvolvedor Web",
         "date": "2016 — 2019",
         "mode": "Presencial",
-        "body": "Ferramentas internas e aplicações CRUD com JavaScript, C#, ASP.NET e SQL Server em uma incubadora acadêmica."
+        "body": "Ferramentas internas e aplicações CRUD com JavaScript, C#, ASP.NET e SQL Server em uma incubadora acadêmica.",
+        "contributions": []
       }
     ]
   },

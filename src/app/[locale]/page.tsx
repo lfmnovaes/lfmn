@@ -1,33 +1,37 @@
-import { ArrowRight, ArrowUpRight, Braces, Layers3, Mail, MoveUpRight } from 'lucide-react';
+import { ArrowUpRight, Mail } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Github, Linkedin } from '@/components/brand-icons';
 import { EngineeringBento } from '@/components/engineering-bento';
-import { HeaderControls } from '@/components/header-controls';
+import { HeaderControls, Wordmark } from '@/components/header-controls';
+import { NameCover } from '@/components/name-cover';
 import { PortraitPlaceholder } from '@/components/portrait-placeholder';
 import { ResumeDownloads } from '@/components/resume-downloads';
 import { RoleTypewriter } from '@/components/role-typewriter';
 import { TechnologyStrip } from '@/components/technology-strip';
+import { getSiteOrigin } from '@/lib/site-origin';
 import type messages from '@/messages/en.json';
 
 type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'meta' });
-  const origin =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : undefined);
+  const origin = getSiteOrigin();
+  const path = locale === 'en' ? '/' : '/pt-BR';
+  const image = {
+    url: locale === 'en' ? '/og-en.png' : '/og-pt-BR.png',
+    width: 1200,
+    height: 630,
+    alt: t('title'),
+  };
   return {
     title: t('title'),
     description: t('description'),
     metadataBase: new URL(origin || 'http://localhost:3000'),
     ...(origin
       ? {
-          metadataBase: new URL(origin),
           alternates: {
-            canonical: locale === 'en' ? '/' : '/pt-BR',
+            canonical: path,
             languages: { en: '/', 'pt-BR': '/pt-BR', 'x-default': '/' },
           },
         }
@@ -36,29 +40,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: t('title'),
       description: t('description'),
       type: 'website',
+      siteName: 'lfmn',
+      url: origin ? path : undefined,
       locale: locale === 'en' ? 'en_US' : 'pt_BR',
-      images: [{ url: locale === 'en' ? '/og-en.png' : '/og-pt-BR.png', width: 1200, height: 630 }],
+      alternateLocale: locale === 'en' ? 'pt_BR' : 'en_US',
+      images: [image],
     },
-    twitter: { card: 'summary_large_image', title: t('title'), description: t('description') },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+      images: [image],
+    },
   };
 }
 export default async function Home({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale });
-  const contributions = t.raw('work.items') as typeof messages.work.items;
   const experience = t.raw('experience.items') as typeof messages.experience.items;
   return (
     <>
       <header className="site-header">
-        <a
+        <Wordmark
           href={locale === 'en' ? '/' : '/pt-BR'}
-          className="wordmark"
-          aria-label={
-            locale === 'en' ? 'lfmn — Luis Fernando, home' : 'lfmn — Luis Fernando, início'
-          }
-        >
-          lfmn
-        </a>
+          label={locale === 'en' ? 'lfmn — Luis Fernando, home' : 'lfmn — Luis Fernando, início'}
+        />
         <HeaderControls
           locale={locale}
           normal={t('nav.normal')}
@@ -71,15 +77,10 @@ export default async function Home({ params }: Props) {
       </header>
       <main tabIndex={-1}>
         <section className="hero page-width" aria-labelledby="hero-title">
-          <div className="hero-content">
+          <div className="hero-content min-w-0">
             <h1 id="hero-title">
               <span className="hero-greeting">{t('hero.greeting')}</span>
-              <span className="name-cover">
-                <span className="name-beams" aria-hidden="true" />
-                <span className="display-name">
-                  {t('hero.first')} {t('hero.last')}
-                </span>
-              </span>
+              <NameCover name={`${t('hero.first')} ${t('hero.last')}`} />
             </h1>
             <RoleTypewriter roles={t.raw('hero.roles')} />
             <div className="experience-card">
@@ -105,37 +106,6 @@ export default async function Home({ params }: Props) {
           instructions={t('technologies.instructions')}
         />
         <EngineeringBento copy={t.raw('engineering')} market={t.raw('market')} locale={locale} />
-        <section className="content-section page-width" aria-labelledby="work-title">
-          <p className="eyebrow section-label">{t('work.label')}</p>
-          <div className="section-heading">
-            <h2 id="work-title">
-              {t('work.title')}
-              <br />
-              <span>{t('work.accent')}</span>
-            </h2>
-            <p>{t('work.intro')}</p>
-          </div>
-          <div className="contribution-grid">
-            {contributions.map((item, i) => {
-              const Icon = [Layers3, MoveUpRight, Braces][i];
-              return (
-                <article className="contribution" key={item.company}>
-                  <div className="contribution-top">
-                    <Icon size={23} strokeWidth={1.3} />
-                  </div>
-                  <p className="company-label">{item.company}</p>
-                  <h3>{item.title}</h3>
-                  <p className="contribution-body">{item.body}</p>
-                  <ul className="tags">
-                    {item.tags.map((tag) => (
-                      <li key={tag}>{tag}</li>
-                    ))}
-                  </ul>
-                </article>
-              );
-            })}
-          </div>
-        </section>
         <section
           className="content-section page-width experience-section"
           aria-labelledby="experience-title"
@@ -146,51 +116,67 @@ export default async function Home({ params }: Props) {
             <p className="section-description">{t('experience.intro')}</p>
           </div>
           <ol className="timeline">
-            {experience.map((item, i) => (
+            {experience.map((item) => (
               <li key={item.company}>
-                <span
-                  className={`timeline-dot ${i === 0 ? 'current-dot' : ''}`}
-                  aria-hidden="true"
-                />
-                <div className="timeline-meta">
-                  <span>{item.date}</span>
-                  <span>{item.mode}</span>
-                </div>
-                <h3>{item.company}</h3>
-                <p className="job-role">{item.role}</p>
-                <p>{item.body}</p>
+                <span className="timeline-dot" aria-hidden="true" />
+                <article className="employer-card">
+                  <div className="timeline-meta mb-5 flex flex-wrap justify-between gap-2 font-mono text-[11px] leading-[1.6] text-muted">
+                    <span>{item.date}</span>
+                    <span>{item.mode}</span>
+                  </div>
+                  <h3>{item.company}</h3>
+                  <p className="job-role">{item.role}</p>
+                  <p>{item.body}</p>
+                  {item.contributions.map((contribution) => (
+                    <div className="employer-contribution" key={contribution.company}>
+                      <p className="company-label">{contribution.company}</p>
+                      <h4>{contribution.title}</h4>
+                      <p>{contribution.body}</p>
+                      <ul className="tags mt-5 flex list-none flex-wrap gap-2 p-0">
+                        {contribution.tags.map((tag) => (
+                          <li key={tag}>{tag}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </article>
               </li>
             ))}
           </ol>
         </section>
         <section className="contact-section page-width" aria-labelledby="contact-title">
-          <p className="eyebrow section-label">{t('contact.label')}</p>
-          <h2 id="contact-title">
-            {t('contact.title')}
-            <br />
-            <span>{t('contact.accent')}</span>
-          </h2>
-          <p>{t('contact.body')}</p>
-          <a className="contact-email" href="mailto:lfmnovaes@gmail.com">
-            lfmnovaes@gmail.com
-            <ArrowUpRight />
-          </a>
-          <div className="contact-socials">
-            <a href="https://github.com/lfmnovaes" target="_blank" rel="noreferrer">
-              <Github size={17} />
-              GitHub
-              <ArrowUpRight size={13} />
+          <div className="contact-intro">
+            <p className="eyebrow section-label">{t('contact.label')}</p>
+            <h2 id="contact-title">
+              {t('contact.title')}
+              <br />
+              <span>{t('contact.accent')}</span>
+            </h2>
+            <p className="section-description">{t('contact.body')}</p>
+          </div>
+          <div className="contact-card">
+            <a className="contact-email block" href="mailto:lfmnovaes@gmail.com">
+              <span className="contact-invitation">
+                <Mail size={18} />
+                {t('contact.email')}
+              </span>
+              <span className="contact-address">
+                lfmnovaes@gmail.com
+                <ArrowUpRight size={22} />
+              </span>
             </a>
-            <a href="https://www.linkedin.com/in/lfmnovaes/" target="_blank" rel="noreferrer">
-              <Linkedin size={17} />
-              LinkedIn
-              <ArrowUpRight size={13} />
-            </a>
-            <a href="mailto:lfmnovaes@gmail.com">
-              <Mail size={17} />
-              {t('contact.email')}
-              <ArrowRight size={13} />
-            </a>
+            <div className="contact-socials">
+              <a href="https://github.com/lfmnovaes" target="_blank" rel="noreferrer">
+                <Github size={17} />
+                GitHub
+                <ArrowUpRight size={13} />
+              </a>
+              <a href="https://www.linkedin.com/in/lfmnovaes/" target="_blank" rel="noreferrer">
+                <Linkedin size={17} />
+                LinkedIn
+                <ArrowUpRight size={13} />
+              </a>
+            </div>
           </div>
         </section>
       </main>

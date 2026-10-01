@@ -1,1 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><title>lfmn</title><rect width="64" height="64" rx="16" fill="#111318"/><path d="M18 16v32h8V16zm16 10v22h8V34h8v-8z" fill="#f3f4f6"/><circle cx="51" cy="47" r="4" fill="#7ce0c3"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><title>lfmn</title><rect x="1" y="1" width="62" height="62" rx="16" fill="#090a0e" stroke="#343744"/><path d="M16 16h8v32h-8z" fill="#f0f1f7"/><path d="M32 16h20v8H40v8h10v8H40v8h-8z" fill="#b3bfff"/></svg>

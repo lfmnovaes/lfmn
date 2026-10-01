@@ -77,7 +77,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     transition.current?.skipTransition();
     reveal.current?.cancel();
     const update = () => flushSync(() => setLights((value) => !value));
-    if (reduced || !document.startViewTransition) {
+    if (!document.startViewTransition) {
       update();
       return;
     }
@@ -91,8 +91,18 @@ export function SiteShell({ children }: { children: ReactNode }) {
       () => {
         if (transition.current !== active) return;
         reveal.current = document.documentElement.animate(
-          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-          { duration: 550, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' },
+          {
+            clipPath: [
+              `circle(${reduced ? radius * 0.35 : 0}px at ${x}px ${y}px)`,
+              `circle(${radius}px at ${x}px ${y}px)`,
+            ],
+            opacity: [reduced ? 0.6 : 1, 1],
+          },
+          {
+            duration: reduced ? 1000 : 700,
+            easing: 'ease-in-out',
+            pseudoElement: '::view-transition-new(root)',
+          },
         );
       },
       () => undefined,
@@ -101,12 +111,17 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <LightingContext.Provider value={{ lights, toggleLights }}>
-      <div ref={shell} className="site-shell" data-motion="on" data-lights={lights ? 'on' : 'off'}>
+      <div
+        ref={shell}
+        className="site-shell min-h-screen bg-background text-foreground"
+        data-motion="on"
+        data-lights={lights ? 'on' : 'off'}
+      >
         <div className="page-mesh" aria-hidden="true">
           <div className="mesh-lines" />
           <div className="mesh-spotlight" />
         </div>
-        <div className="page-layer">{children}</div>
+        <div className="relative z-1 pt-px">{children}</div>
       </div>
     </LightingContext.Provider>
   );

@@ -58,8 +58,13 @@ export function EngineeringBento({
                   {copy.services.map((service, index) => {
                     const Icon = icons[index];
                     return (
-                      <li key={service.title}>
-                        <span className={`service-icon service-color-${index}`}>
+                      <li
+                        className="flex min-h-16 items-center gap-3 rounded-[10px] border border-border bg-background px-3 py-2.5"
+                        key={service.title}
+                      >
+                        <span
+                          className={`service-icon grid size-8.5 shrink-0 place-items-center rounded-[9px] text-primary service-color-${index}`}
+                        >
                           <Icon size={18} aria-hidden="true" />
                         </span>
                         <div>
@@ -74,7 +79,7 @@ export function EngineeringBento({
             </div>
           </section>
         </article>
-        <article className="bento-card flow-card" aria-labelledby="flow-title">
+        <article className="bento-card flow-card flex flex-col" aria-labelledby="flow-title">
           <Braces className="bento-icon" size={24} aria-hidden="true" />
           <h3 id="flow-title">{copy.flowTitle}</h3>
           <p className="bento-description">{copy.flowIntro}</p>
@@ -91,7 +96,7 @@ export function EngineeringBento({
               <path d="M270 40 H30" className="flow-packet flow-response" />
             </svg>
             {[Monitor, Server, Database].map((Icon, index) => (
-              <div className="flow-node" key={copy.nodes[index]}>
+              <div className="flow-node relative text-center" key={copy.nodes[index]}>
                 <span>
                   <Icon size={23} aria-hidden="true" />
                 </span>
@@ -99,7 +104,10 @@ export function EngineeringBento({
               </div>
             ))}
           </div>
-          <div className="flow-payload" aria-hidden="true">
+          <div
+            className="flow-payload mt-6 flex items-center justify-center gap-3 font-mono text-[10px] text-muted"
+            aria-hidden="true"
+          >
             <span>GET /api</span>
             <i />
             <span>200 OK</span>
@@ -107,7 +115,7 @@ export function EngineeringBento({
           <p className="flow-caption">{copy.flowCaption}</p>
         </article>
         <article className="bento-card quality-card" aria-labelledby="quality-title">
-          <div className="quality-copy">
+          <div className="max-w-122.5">
             <Check className="bento-icon" size={24} aria-hidden="true" />
             <h3 id="quality-title">{copy.qualityTitle}</h3>
             <p className="bento-description">{copy.qualityIntro}</p>
@@ -121,7 +129,10 @@ export function EngineeringBento({
                   key={String(duplicate)}
                 >
                   {copy.practices.map((practice) => (
-                    <li key={practice}>
+                    <li
+                      className="flex min-h-12 w-45 items-center justify-center gap-2.25 rounded-[9px] border border-border bg-background p-2.5 text-xs text-foreground"
+                      key={practice}
+                    >
                       <Check size={14} aria-hidden="true" />
                       {practice}
                     </li>

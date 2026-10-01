@@ -71,7 +71,10 @@ export function ResumeDownloads({
   portuguese: string;
 }) {
   return (
-    <fieldset className="resume-downloads" aria-label={label}>
+    <fieldset
+      className="resume-downloads mt-4 grid grid-cols-2 gap-2.5 border-0 p-0"
+      aria-label={label}
+    >
       <ResumeLink language="en" country="US" label={english} />
       <ResumeLink language="pt-BR" country="BR" label={portuguese} />
     </fieldset>

@@ -1,3 +1,5 @@
+import { TechnologyCarousel } from './technology-carousel';
+
 const rows = [
   [
     ['React', 'react'],
@@ -53,31 +55,29 @@ export function TechnologyStrip({
       <p className="sr-only" id="technology-instructions">
         {instructions}
       </p>
-      <div className="technology-rows">
+      <div className="grid gap-6">
         {rows.map((technologies, index) => (
-          <div className="technology-row" key={technologies[0][0]}>
+          <div className="technology-row min-w-0" key={technologies[0][0]}>
             <h3 className="eyebrow" id={`technology-category-${index}`}>
               {categories[index]}
             </h3>
-            <section
-              className="technology-viewport"
-              // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard focus pauses this reading region, as described by its instructions.
-              tabIndex={0}
-              aria-labelledby={`technology-category-${index}`}
-              aria-describedby="technology-instructions"
-            >
+            <TechnologyCarousel labelledBy={`technology-category-${index}`}>
               <div className="technology-track">
                 {[false, true].map((duplicate) => (
                   <ul
-                    className={`technology-group${duplicate ? ' technology-duplicate' : ''}`}
+                    className={`technology-group m-0 list-none gap-4 p-0${duplicate ? ' technology-duplicate' : ''}`}
                     aria-hidden={duplicate || undefined}
                     key={String(duplicate)}
                   >
                     {technologies.map(([name, icon]) => (
-                      <li className="technology-card" key={name}>
-                        <span className="technology-icon">
+                      <li
+                        className="technology-card relative flex min-h-31.5 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-(--surface) px-2.5 py-4 text-xs font-medium text-foreground"
+                        key={name}
+                      >
+                        <span className="technology-icon grid size-16 place-items-center rounded-xl bg-[#f8f9fc]">
                           {/* biome-ignore lint/performance/noImgElement: Local SVG logos need no raster optimization or image client runtime. */}
                           <img
+                            className="block size-13 object-contain"
                             src={`/technologies/${icon}.svg`}
                             alt=""
                             width={52}
@@ -92,7 +92,7 @@ export function TechnologyStrip({
                   </ul>
                 ))}
               </div>
-            </section>
+            </TechnologyCarousel>
           </div>
         ))}
       </div>

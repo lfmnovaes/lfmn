@@ -9,6 +9,8 @@ test('technology names and local SVGs survive both palettes, languages, and narr
   page,
   request,
 }) => {
+  // Both locales inspect 26 lazy-loaded images and their HTTP responses.
+  test.setTimeout(60_000);
   for (const [path, title] of [
     ['/', 'From interface to infrastructure.'],
     ['/pt-BR', 'Da interface à infraestrutura.'],
@@ -132,4 +134,112 @@ test('marquees animate automatically, pause on hover/focus, and adapt to reduced
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test('each carousel can be dragged both ways, wraps continuously, and supports arrow keys', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/');
+  const rows = page.locator('.technology-viewport');
+  for (const row of await rows.all()) {
+    await row.scrollIntoViewIfNeeded();
+    await row.focus();
+    await expect(row).toHaveCSS('cursor', 'grab');
+    await expect(row).toHaveCSS('touch-action', 'pan-y pinch-zoom');
+    const track = row.locator('.technology-track');
+    await track.evaluate((node) => {
+      const animation = node.getAnimations()[0];
+      animation.currentTime = Number(animation.effect?.getTiming().duration) / 2;
+    });
+    const position = () =>
+      track.evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).m41);
+    const rect = await row.boundingBox();
+    if (!rect) throw new Error('Carousel must have bounds');
+    const x = rect.x + 45;
+    const y = rect.y + rect.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await expect(row).toHaveAttribute('data-dragging', 'true');
+    await expect(row).toHaveCSS('cursor', 'grabbing');
+    const start = await position();
+    await page.mouse.move(x + 120, y, { steps: 5 });
+    await expect.poll(position).toBeCloseTo(start + 120, 0);
+    await page.mouse.move(x - 30, y, { steps: 5 });
+    await expect.poll(position).toBeCloseTo(start - 30, 0);
+    await row.dispatchEvent('pointermove', { isPrimary: true, clientX: x + 10000, clientY: y });
+    const wrapped = await track.evaluate((node) => {
+      const animation = node.getAnimations()[0];
+      return {
+        time: Number(animation.currentTime),
+        duration: Number(animation.effect?.getTiming().duration),
+        width: node.firstElementChild?.getBoundingClientRect().width ?? 0,
+      };
+    });
+    expect(wrapped.time).toBeGreaterThanOrEqual(0);
+    expect(wrapped.time).toBeLessThan(wrapped.duration);
+    expect(await position()).toBeGreaterThanOrEqual(-wrapped.width);
+    expect(await position()).toBeLessThanOrEqual(0);
+    await page.mouse.up();
+    await expect(row).not.toHaveAttribute('data-dragging', 'true');
+    await expect(row).toHaveCSS('cursor', 'grab');
+    await track.evaluate((node) => {
+      const animation = node.getAnimations()[0];
+      animation.currentTime = Number(animation.effect?.getTiming().duration) / 2;
+    });
+    const initial = await position();
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(position).toBeCloseTo(initial - 168, 0);
+    await page.keyboard.press('ArrowLeft');
+    await expect.poll(position).toBeCloseTo(initial, 0);
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await row.dispatchEvent('pointercancel');
+    await expect(row).not.toHaveAttribute('data-dragging', 'true');
+    await page.mouse.up();
+    await page.mouse.move(0, 0);
+    await row.evaluate((node) => (node as HTMLElement).blur());
+    await expect(track).toHaveCSS('animation-play-state', 'running');
+  }
+  if (isMobile) {
+    const session = await page.context().newCDPSession(page);
+    const row = rows.first();
+    await row.scrollIntoViewIfNeeded();
+    await row.focus();
+    const track = row.locator('.technology-track');
+    await track.evaluate((node) => {
+      const animation = node.getAnimations()[0];
+      animation.currentTime = Number(animation.effect?.getTiming().duration) / 2;
+    });
+    const rect = await row.boundingBox();
+    if (!rect) throw new Error('Touch carousel must have bounds');
+    const x = rect.x + rect.width * 0.65;
+    const y = rect.y + rect.height / 2;
+    const position = () =>
+      track.evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).m41);
+    const start = await position();
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await expect(row).toHaveAttribute('data-dragging', 'true');
+    for (let step = 1; step <= 6; step++) {
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [{ x: x - step * 20, y }],
+      });
+    }
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect(row).not.toHaveAttribute('data-dragging', 'true');
+    await expect.poll(position).toBeCloseTo(start - 120, 0);
+    const scroll = await page.evaluate(() => scrollY);
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let step = 1; step <= 5; step++) {
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [{ x, y: y - step * 30 }],
+      });
+    }
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect(row).not.toHaveAttribute('data-dragging', 'true');
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(scroll);
+    await session.detach();
+  }
 });
