@@ -170,12 +170,10 @@ svg {
   padding: 0 10px;
   font-size: 11px;
   gap: 7px;
-}
-.mode-button[aria-pressed="true"] {
-  color: var(--primary);
-}
-.wip-button {
   color: var(--muted);
+}
+.mode-button[aria-current="page"] {
+  color: var(--primary);
 }
 .locale-switch {
   --segment-padding: 0px;

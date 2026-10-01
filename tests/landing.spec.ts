@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const locale of ['en', 'pt-BR']) {
-  test(`${locale}: profile, WIP mode, exactly two résumé downloads, and both palettes are accessible`, async ({
+  test(`${locale}: profile, active mode navigation, exactly two résumé downloads, and both palettes are accessible`, async ({
     page,
     request,
   }) => {
@@ -37,18 +37,19 @@ for (const locale of ['en', 'pt-BR']) {
     await expect(page.locator('a[download]')).toHaveCount(2);
     await expect(page.locator('.resume-downloads a')).toHaveCount(2);
     await expect(page.getByRole('button', { name: 'Normal', exact: true })).toHaveAttribute(
-      'aria-pressed',
-      'true',
+      'aria-current',
+      'page',
     );
-    const wip = page.getByRole('button', {
-      name: locale === 'en' ? 'Universe — Work in progress' : 'Universo — Em desenvolvimento',
+    const universe = page.getByRole('button', {
+      name: locale === 'en' ? 'Universe' : 'Universo',
+      exact: true,
     });
-    await expect(wip).toHaveAttribute('aria-disabled', 'true');
-    await wip.focus();
-    await expect(page.getByRole('tooltip')).toContainText(
-      locale === 'en' ? 'Work in progress' : 'Em desenvolvimento',
+    await expect(universe).toHaveAttribute(
+      'href',
+      `${locale === 'en' ? '' : '/pt-BR'}/universe-preview`,
     );
-    await page.keyboard.press('Escape');
+    await expect(universe).not.toHaveAttribute('aria-disabled');
+    await universe.focus();
     await expect(page.getByRole('tooltip')).toHaveCount(0);
     const audit = async () => {
       const results = await new AxeBuilder({ page })
@@ -85,24 +86,26 @@ for (const locale of ['en', 'pt-BR']) {
   });
 }
 
-test('WIP explanation opens on hover, focus, and click, and dismisses on exit or Escape', async ({
+test('mode navigation opens Universe automatically and preserves Normal lighting on return', async ({
   page,
 }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  const trigger = page.getByRole('button', { name: 'Universe — Work in progress' });
-  const tooltip = page.getByRole('tooltip');
-  await trigger.hover();
-  await expect(tooltip).toHaveText('Work in progress');
-  await page.mouse.move(0, 0);
-  await expect(tooltip).toHaveCount(0);
-  await trigger.focus();
-  await expect(tooltip).toHaveText('Work in progress');
-  await page.getByRole('button', { name: 'Normal', exact: true }).focus();
-  await expect(tooltip).toHaveCount(0);
-  await trigger.click({ force: true });
-  await expect(tooltip).toHaveText('Work in progress');
-  await page.keyboard.press('Escape');
-  await expect(tooltip).toHaveCount(0);
+  await page.getByRole('button', { name: 'Turn the lights on' }).click();
+  await expect(page.locator('.site-shell')).toHaveAttribute('data-lights', 'on');
+  await page.getByRole('button', { name: 'Universe', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL('/universe-preview');
+  await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');
+  await expect(page.getByRole('button', { name: 'Universe', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(page.getByRole('tooltip')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Normal', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await expect(page.locator('.site-shell')).toHaveAttribute('data-lights', 'on');
+  await expect(page.locator('a[download]')).toHaveCount(2);
 });
 
 test('role starts automatically, holds for four seconds, and erases fully', async ({ page }) => {

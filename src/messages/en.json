@@ -7,7 +7,6 @@
     "skip": "Skip to content",
     "normal": "Normal",
     "universe": "Universe",
-    "wip": "Work in progress",
     "lightsOn": "Turn the lights on",
     "lightsOff": "Turn the lights off"
   },
@@ -192,18 +191,15 @@
   },
   "universe": {
     "preview": "Universe / Development preview",
-    "navigation": "Preview navigation",
+    "skipToFacts": "Skip to planet facts",
     "scene": "Illustrative solar system",
-    "intro": "Explore the same career through an illustrative solar system. Select a body to focus the camera and read its section summary.",
-    "enter": "Enter Universe",
-    "returnNormal": "Return to Normal",
     "loading": "Loading Universe scene",
-    "unavailable": "The 3D scene is unavailable. Planet navigation and career summaries still work; return to Normal to read the complete portfolio.",
-    "noJavaScript": "The 3D preview needs JavaScript. The introduction and résumé links remain available; Normal contains the complete portfolio.",
+    "unavailable": "The 3D scene is unavailable. You can still select a body and explore its facts.",
+    "noJavaScript": "The 3D scene needs JavaScript. Facts about every body remain available below.",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "planetNavigation": "Choose a planet",
-    "illustrative": "Illustrative solar system: sizes, distances, and motion are artistic. Pluto is included in this career journey.",
+    "illustrative": "Illustrative solar system: sizes, distances, and motion are artistic, not to scale.",
     "bodies": {
       "sun": "Sun",
       "mercury": "Mercury",
@@ -218,6 +214,212 @@
     },
     "controls": "Scene controls",
     "pause": "Pause scene motion",
-    "resume": "Resume scene motion"
+    "resume": "Resume scene motion",
+    "explore": "Explore facts",
+    "closeFacts": "Close facts",
+    "source": "Read more at NASA Science (English)",
+    "measurements": "Rounded measurements; rotation is one spin, not sunrise to sunrise.",
+    "position": "Position in the solar system navigation",
+    "previous": "Previous body",
+    "next": "Next body",
+    "rotateLeft": "Rotate camera left",
+    "rotateRight": "Rotate camera right",
+    "rotateUp": "Rotate camera up",
+    "rotateDown": "Rotate camera down",
+    "gestures": "Scroll to travel · Drag to orbit · Pinch to zoom",
+    "content": {
+      "sun": {
+        "kind": "Star",
+        "summary": "The star at the center of our solar system, powered by nuclear fusion.",
+        "description": "The Sun is a ball of plasma held together by gravity. Its core fuses hydrogen into helium, releasing the energy that reaches Earth as light and heat.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 1.4 million km"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 25 Earth days at the equator"
+          },
+          {
+            "label": "Age",
+            "value": "About 4.6 billion years"
+          }
+        ]
+      },
+      "mercury": {
+        "kind": "Terrestrial planet",
+        "summary": "The smallest planet and the closest to the Sun, with a cratered, rocky surface.",
+        "description": "Mercury has almost no atmosphere to retain heat. Its surface experiences extreme temperature changes, and its elliptical orbit is the fastest of all the planets.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 4,880 km"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 59 Earth days"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "88 Earth days"
+          }
+        ]
+      },
+      "venus": {
+        "kind": "Terrestrial planet",
+        "summary": "A rocky world with a thick atmosphere that traps heat, making it the hottest planet.",
+        "description": "Venus is similar in size to Earth, but its carbon-dioxide-rich atmosphere creates an intense greenhouse effect. It rotates in the opposite direction to most planets.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 12,104 km at the equator"
+          },
+          {
+            "label": "Rotation",
+            "value": "243 Earth days"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "225 Earth days"
+          }
+        ]
+      },
+      "earth": {
+        "kind": "Terrestrial planet",
+        "summary": "Our ocean-covered home, the only world known to support life.",
+        "description": "Earth has liquid water at the surface and an atmosphere rich in nitrogen and oxygen. Its tilted axis produces seasons as it travels around the Sun.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 12,756 km at the equator"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 23.9 hours"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "365.25 Earth days"
+          }
+        ]
+      },
+      "mars": {
+        "kind": "Terrestrial planet",
+        "summary": "The red planet, colored by iron minerals that have rusted in its soil.",
+        "description": "Mars has a thin atmosphere, polar ice caps, and traces of ancient rivers and lakes. Its huge volcano Olympus Mons and canyon system Valles Marineris shape a dramatic landscape.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 6,780 km"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 24.6 hours"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "687 Earth days"
+          }
+        ]
+      },
+      "jupiter": {
+        "kind": "Gas giant",
+        "summary": "The largest planet, with bands of clouds and the immense Great Red Spot storm.",
+        "description": "Jupiter is mostly hydrogen and helium. Its clouds form contrasting belts and zones, while the Great Red Spot is a long-lived storm in its atmosphere.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 139,822 km"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 9.9 hours"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "About 12 Earth years"
+          }
+        ]
+      },
+      "saturn": {
+        "kind": "Gas giant",
+        "summary": "A giant planet surrounded by bright rings made mostly of ice, with rock and dust.",
+        "description": "Saturn has no solid surface like Earth. Its ring particles range from tiny grains to large chunks, and its low average density is less than that of water.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 120,500 km at the equator"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 10.7 hours"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "About 29.4 Earth years"
+          }
+        ]
+      },
+      "uranus": {
+        "kind": "Ice giant",
+        "summary": "A pale blue-green world that rotates almost on its side.",
+        "description": "Uranus has an extreme axial tilt of about 98 degrees. Methane in its atmosphere absorbs red light, helping give the planet its blue-green appearance.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 51,118 km at the equator"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 17 hours"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "About 84 Earth years"
+          }
+        ]
+      },
+      "neptune": {
+        "kind": "Ice giant",
+        "summary": "The most distant planet, with a blue atmosphere and powerful winds.",
+        "description": "Neptune was located using mathematical predictions before direct observation confirmed it. Methane helps color its atmosphere, where storms and very fast winds develop.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 49,528 km at the equator"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 16 hours"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "About 165 Earth years"
+          }
+        ]
+      },
+      "pluto": {
+        "kind": "Dwarf planet",
+        "summary": "A small, icy world in the Kuiper Belt, beyond the eight planets.",
+        "description": "Pluto has an elongated, tilted orbit and a thin atmosphere. Nitrogen ice covers parts of its surface, including the bright, heart-shaped region seen by New Horizons.",
+        "facts": [
+          {
+            "label": "Diameter",
+            "value": "About 2,377 km at the equator"
+          },
+          {
+            "label": "Rotation",
+            "value": "About 153 hours"
+          },
+          {
+            "label": "Orbit around the Sun",
+            "value": "248 Earth years"
+          }
+        ]
+      }
+    },
+    "textureCredits": "Textures:",
+    "textureFallback": "Some textures could not load; simplified illustrations and all facts remain available."
   }
 }

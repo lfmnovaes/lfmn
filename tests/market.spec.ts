@@ -218,7 +218,7 @@ test('intervals keep one selection, support keyboard navigation, and disable ind
   await expect(group.locator('[aria-pressed="true"]')).toHaveCount(1);
 });
 
-test('Select and tooltip inherit the light palette, while chart theme changes do not restart the stream', async ({
+test('Select and mode controls inherit the light palette, while chart theme changes do not restart the stream', async ({
   page,
 }) => {
   const { sockets, requests } = await fixture(page);
@@ -255,8 +255,8 @@ test('Select and tooltip inherit the light palette, while chart theme changes do
   await expect(page.getByRole('combobox')).toBeFocused();
   await page.getByRole('button', { name: 'Normal', exact: true }).focus();
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'Universe — Work in progress' })).toBeFocused();
-  await expect(page.getByRole('tooltip')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(page.getByRole('button', { name: 'Universe', exact: true })).toBeFocused();
+  await expect(page.getByRole('tooltip')).toHaveCount(0);
 });
 
 test('silent or invalid streams retain the last price and reconnect with a bounded retry count', async ({

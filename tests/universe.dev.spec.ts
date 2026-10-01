@@ -10,25 +10,21 @@ for (const [locale, copy] of [
 ] as const) {
   const path = locale === 'en' ? '/universe-preview' : '/pt-BR/universe-preview';
 
-  test(`${locale}: scene loads on request and every body supports selection and camera focus`, async ({
+  test(`${locale}: scene loads automatically and every body supports selection and camera focus`, async ({
     page,
   }) => {
-    const requests: string[] = [];
     const errors: string[] = [];
-    page.on('request', (request) => requests.push(request.url()));
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => {
-      if (message.type() === 'warning' && message.text().includes('THREE.Clock'))
+      if (
+        message.type() === 'error' ||
+        (message.type() === 'warning' && message.text().includes('THREE.Clock'))
+      )
         errors.push(message.text());
     });
     await page.goto(path);
     await expect(page.locator('html')).toHaveAttribute('lang', locale);
-    await expect(page.locator('canvas')).toHaveCount(0);
-    expect(
-      requests.some((url) => /node_modules_three|node_modules_@react-three_fiber/.test(url)),
-    ).toBe(false);
-    await expect(page.locator('a[download]')).toHaveCount(2);
-    await page.getByRole('button', { name: copy.universe.enter, exact: true }).click();
+    await expect(page.locator('a[download]')).toHaveCount(0);
     const canvas = page.locator('canvas');
     await expect(
       page.getByRole('button', { name: copy.universe.zoomIn, exact: true }),
@@ -51,9 +47,20 @@ for (const [locale, copy] of [
           .locator('[aria-pressed="true"]'),
       ).toHaveCount(1);
       await expect(canvas).toHaveAttribute('data-focused-planet', id);
+      await expect(page.getByRole('meter', { name: copy.universe.position })).toHaveAttribute(
+        'aria-valuetext',
+        name,
+      );
     }
+    for (const name of [
+      copy.universe.bodies.earth,
+      copy.universe.bodies.neptune,
+      copy.universe.bodies.venus,
+    ])
+      await page.getByRole('button', { name, exact: true }).click();
+    await expect(canvas).toHaveAttribute('data-focused-planet', 'venus');
     await page.getByRole('button', { name: copy.universe.bodies.sun, exact: true }).focus();
-    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowDown');
     await expect(
       page.getByRole('button', { name: copy.universe.bodies.mercury, exact: true }),
     ).toBeFocused();
@@ -67,9 +74,47 @@ for (const [locale, copy] of [
       .analyze();
     expect(results.violations).toEqual([]);
     expect(errors).toEqual([]);
-    await page.getByRole('link', { name: copy.universe.returnNormal, exact: true }).click();
+    await page.getByRole('button', { name: copy.nav.normal, exact: true }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Luis');
     await expect(page.locator('a[download]')).toHaveCount(2);
+  });
+
+  test(`${locale}: every body has sourced facts and an accessible reading panel`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(path);
+    await expect(
+      page.getByRole('button', { name: copy.universe.zoomIn, exact: true }),
+    ).toBeEnabled();
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+    for (const [id, name] of Object.entries(copy.universe.bodies)) {
+      await page.getByRole('button', { name, exact: true }).click();
+      await page.getByRole('button', { name: copy.universe.explore, exact: true }).click();
+      const dialog = page.getByRole('dialog', { name, exact: true });
+      const content = copy.universe.content[id as keyof typeof copy.universe.content];
+      await expect(dialog).toContainText(content.description);
+      for (const fact of content.facts) await expect(dialog).toContainText(fact.value);
+      await expect(dialog.getByRole('link', { name: copy.universe.source })).toHaveAttribute(
+        'href',
+        /^https:\/\/science\.nasa\.gov\//,
+      );
+      if (id === 'pluto') {
+        const close = dialog.getByRole('button', { name: copy.universe.closeFacts });
+        await close.focus();
+        await page.keyboard.press('Tab');
+        await expect(dialog.getByRole('link')).toBeFocused();
+        await page.keyboard.press('Tab');
+        await expect(close).toBeFocused();
+        const factsAudit = await new AxeBuilder({ page })
+          .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+          .analyze();
+        expect(factsAudit.violations).toEqual([]);
+      }
+      await page.keyboard.press('Escape');
+      await expect(dialog).toHaveCount(0);
+      await expect(page.getByRole('button', { name: copy.universe.explore })).toBeFocused();
+    }
   });
 
   test(`${locale}: missing WebGL retains readable summaries and navigation`, async ({ page }) => {
@@ -82,21 +127,20 @@ for (const [locale, copy] of [
       });
     });
     await page.goto(path);
-    await page.getByRole('button', { name: copy.universe.enter, exact: true }).click();
     await expect(page.getByRole('status')).toHaveText(copy.universe.unavailable);
     await expect(page.locator('canvas')).toHaveCount(0);
     await expect(
       page.getByRole('button', { name: copy.universe.zoomIn, exact: true }),
     ).toBeDisabled();
     await page.getByRole('button', { name: copy.universe.bodies.jupiter, exact: true }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('MyCareforce');
-    await expect(page.getByRole('region', { name: 'MyCareforce' })).toContainText(
-      copy.experience.items[0].body,
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(copy.universe.bodies.jupiter);
+    await expect(page.getByRole('region', { name: copy.universe.bodies.jupiter })).toContainText(
+      copy.universe.content.jupiter.summary,
     );
   });
 }
 
-test('loading reflects pending renderer chunks and a failed import preserves the portfolio controls', async ({
+test('loading reflects pending renderer chunks and a failed import preserves the facts and controls', async ({
   page,
 }) => {
   let release = () => {};
@@ -110,8 +154,6 @@ test('loading reflects pending renderer chunks and a failed import preserves the
     await route.continue();
   });
   await page.goto('/universe-preview');
-  expect(held).toBe(0);
-  await page.getByRole('button', { name: en.universe.enter, exact: true }).click();
   try {
     await expect.poll(() => held).toBeGreaterThan(0);
     await expect(page.getByRole('progressbar', { name: en.universe.loading })).toBeVisible();
@@ -123,22 +165,21 @@ test('loading reflects pending renderer chunks and a failed import preserves the
   }
   await expect(page.getByRole('button', { name: en.universe.zoomIn, exact: true })).toBeEnabled();
   await expect(page.getByRole('progressbar')).toHaveCount(0);
-  await page.reload();
   await page.unroute('**/_next/static/chunks/node_modules_three_*');
   await page.route('**/_next/static/chunks/node_modules_three_*', (route) => route.abort());
-  await page.getByRole('button', { name: en.universe.enter, exact: true }).click();
+  await page.reload();
   await expect(page.getByRole('status')).toHaveText(en.universe.unavailable);
   await expect(page.getByRole('progressbar')).toHaveCount(0);
   await page.getByRole('button', { name: 'Jupiter', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('MyCareforce');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.universe.bodies.jupiter);
 });
 
 test('canvas pointer selection has the same DOM result as keyboard selection', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/universe-preview');
-  await page.getByRole('button', { name: en.universe.enter, exact: true }).click();
   const canvas = page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-focused-planet', 'sun');
+  await expect(page.getByRole('progressbar')).toHaveCount(0);
   await page.getByRole('button', { name: 'Mercury', exact: true }).click();
   await expect(canvas).toHaveAttribute('data-focused-planet', 'mercury');
   for (let index = 0; index < 5; index++)
@@ -161,7 +202,7 @@ test('canvas pointer selection has the same DOM result as keyboard selection', a
     let x = 0,
       y = 0,
       count = 0;
-    // The primitive Sun is the bright yellow body; use its rendered center.
+    // The Sun is the bright yellow body; use its rendered center.
     for (let index = 0; index < pixels.length; index += 4) {
       const [red, green, blue] = pixels.slice(index, index + 3);
       if (red > 180 && green > red * 0.65 && blue < red * 0.62) {
@@ -195,9 +236,13 @@ test('reduced motion stops rendering between direct focus and zoom changes', asy
     Object.defineProperty(window, 'universeFrames', { get: () => frames });
   });
   await page.goto('/universe-preview');
-  await page.getByRole('button', { name: en.universe.enter, exact: true }).click();
   const canvas = page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-focused-planet', 'sun');
+  await expect(page.getByRole('progressbar')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: en.universe.zoomIn, exact: true })).toBeEnabled();
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+  );
   await page.clock.install();
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now() + 1000)));
   const frames = () => page.evaluate(() => Reflect.get(window, 'universeFrames') as number);
@@ -217,7 +262,7 @@ test('reduced motion stops rendering between direct focus and zoom changes', asy
   expect(await frames()).toBe(zoomed);
 });
 
-test('preview introduction and its two downloads remain readable without JavaScript', async ({
+test('all bodies have readable facts without JavaScript and Universe has no downloads', async ({
   browser,
   baseURL,
 }) => {
@@ -225,14 +270,21 @@ test('preview introduction and its two downloads remain readable without JavaScr
   try {
     const page = await context.newPage();
     await page.goto('/universe-preview');
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Luis Fernando');
-    await expect(page.locator('a[download]')).toHaveCount(2);
-    await expect(page.getByRole('button', { name: en.universe.enter, exact: true })).toBeHidden();
-    await expect(page.locator('noscript p')).toHaveText(en.universe.noJavaScript);
-    await expect(page.locator('noscript p')).toBeVisible();
-    await expect(
-      page.getByRole('link', { name: en.universe.returnNormal, exact: true }),
-    ).toHaveAttribute('href', '/');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.universe.bodies.sun);
+    await expect(page.locator('a[download]')).toHaveCount(0);
+    await expect(page.getByRole('progressbar')).toBeHidden();
+    await expect(page.getByRole('status')).toHaveText(en.universe.noJavaScript);
+    await expect(page.getByRole('status')).toBeVisible();
+    for (const [index, id] of Object.keys(en.universe.bodies).entries()) {
+      await page.locator('noscript details').nth(index).locator('summary').click();
+      await expect(page.locator('noscript details[open]').last()).toContainText(
+        en.universe.content[id as keyof typeof en.universe.content].description,
+      );
+    }
+    await expect(page.getByRole('button', { name: en.nav.normal, exact: true })).toHaveAttribute(
+      'href',
+      '/',
+    );
   } finally {
     await context.close();
   }

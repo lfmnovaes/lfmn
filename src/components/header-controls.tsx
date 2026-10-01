@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { type ReactNode, useEffect, useRef } from 'react';
 
 import { Grid2X2, Moon, Rocket, Sun } from 'lucide-react';
 
@@ -11,7 +12,6 @@ import { Button } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import styles from './ui/segmented-control.module.css';
 import { SelectionIndicator } from './ui/selection-indicator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 export function Wordmark({ href, label }: { href: string; label: string }) {
   const frame = useRef(0);
@@ -59,57 +59,65 @@ function ModeSwitch({
   locale,
   normal,
   universe,
-  wip,
+  mode,
 }: {
   locale: Locale;
   normal: string;
   universe: string;
-  wip: string;
+  mode: 'normal' | 'universe';
 }) {
-  const [wipOpen, setWipOpen] = useState(false);
   return (
     <ButtonGroup
       className="mode-switch"
       aria-label={locale === 'en' ? 'Site mode' : 'Modo do site'}
     >
-      <SelectionIndicator index={0} count={2} />
-      <Button variant="ghost" aria-pressed="true" aria-label={normal} className="mode-button">
+      <SelectionIndicator index={mode === 'normal' ? 0 : 1} count={2} />
+      <Button
+        variant="ghost"
+        nativeButton={false}
+        render={<Link href={locale === 'en' ? '/' : '/pt-BR'} prefetch={false} />}
+        aria-current={mode === 'normal' ? 'page' : undefined}
+        aria-label={normal}
+        className="mode-button"
+      >
         <Grid2X2 aria-hidden="true" />
         <span className="mode-label">{normal}</span>
       </Button>
-      <TooltipProvider delay={0} closeDelay={0}>
-        <Tooltip open={wipOpen} onOpenChange={setWipOpen} disableHoverablePopup>
-          <TooltipTrigger
-            render={<Button variant="ghost" className="mode-button wip-button" />}
-            aria-disabled="true"
-            aria-label={`${universe} — ${wip}`}
-            closeOnClick={false}
-            onMouseEnter={() => setWipOpen(true)}
-            onMouseLeave={() => setWipOpen(false)}
-            onClick={() => setWipOpen(true)}
-          >
-            <Rocket aria-hidden="true" />
-            <span className="mode-label">{universe}</span>
-          </TooltipTrigger>
-          <TooltipContent>{wip}</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        variant="ghost"
+        nativeButton={false}
+        render={
+          <Link href={`${locale === 'en' ? '' : '/pt-BR'}/universe-preview`} prefetch={false} />
+        }
+        aria-current={mode === 'universe' ? 'page' : undefined}
+        aria-label={universe}
+        className="mode-button"
+      >
+        <Rocket aria-hidden="true" />
+        <span className="mode-label">{universe}</span>
+      </Button>
     </ButtonGroup>
   );
 }
 
-function LanguageSwitch({ locale }: { locale: Locale }) {
+function LanguageSwitch({ locale, mode }: { locale: Locale; mode: 'normal' | 'universe' }) {
+  const path = mode === 'universe' ? '/universe-preview' : '';
   return (
     <nav
       className={`locale-switch ${styles.group}`}
       aria-label={locale === 'en' ? 'Language' : 'Idioma'}
     >
       <SelectionIndicator index={locale === 'en' ? 0 : 1} count={2} />
-      <a href="/" lang="en" hrefLang="en" aria-current={locale === 'en' ? 'page' : undefined}>
+      <a
+        href={path || '/'}
+        lang="en"
+        hrefLang="en"
+        aria-current={locale === 'en' ? 'page' : undefined}
+      >
         EN
       </a>
       <a
-        href="/pt-BR"
+        href={`/pt-BR${path}`}
         lang="pt-BR"
         hrefLang="pt-BR"
         aria-current={locale === 'pt-BR' ? 'page' : undefined}
@@ -120,34 +128,22 @@ function LanguageSwitch({ locale }: { locale: Locale }) {
   );
 }
 
-export function HeaderControls({
+export function HeaderNavigation({
   locale,
   normal,
   universe,
-  wip,
-  lightsOn,
-  lightsOff,
-  skip,
+  mode,
+  children,
 }: {
   locale: Locale;
   normal: string;
   universe: string;
-  wip: string;
-  lightsOn: string;
-  lightsOff: string;
-  skip: string;
+  mode: 'normal' | 'universe';
+  children?: ReactNode;
 }) {
-  const { lights, toggleLights } = useLighting();
   return (
     <div className="header-controls ml-auto flex items-center gap-2">
-      <button
-        className="skip-link js-control"
-        type="button"
-        onClick={() => document.querySelector('main')?.focus()}
-      >
-        {skip}
-      </button>
-      <ModeSwitch locale={locale} normal={normal} universe={universe} wip={wip} />
+      <ModeSwitch locale={locale} normal={normal} universe={universe} mode={mode} />
       <a
         href="https://github.com/lfmnovaes"
         target="_blank"
@@ -158,17 +154,49 @@ export function HeaderControls({
       >
         <Github size={18} aria-hidden="true" />
       </a>
-      <Button
-        variant="ghost"
-        className="header-icon js-control"
-        aria-label={lights ? lightsOff : lightsOn}
-        title={lights ? lightsOff : lightsOn}
-        aria-pressed={lights}
-        onClick={(event) => toggleLights(event.currentTarget)}
-      >
-        {lights ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-      </Button>
-      <LanguageSwitch locale={locale} />
+      {children}
+      <LanguageSwitch locale={locale} mode={mode} />
     </div>
+  );
+}
+
+export function HeaderControls({
+  locale,
+  normal,
+  universe,
+  lightsOn,
+  lightsOff,
+  skip,
+}: {
+  locale: Locale;
+  normal: string;
+  universe: string;
+  lightsOn: string;
+  lightsOff: string;
+  skip: string;
+}) {
+  const { lights, toggleLights } = useLighting();
+  return (
+    <>
+      <button
+        className="skip-link js-control"
+        type="button"
+        onClick={() => document.querySelector('main')?.focus()}
+      >
+        {skip}
+      </button>
+      <HeaderNavigation locale={locale} normal={normal} universe={universe} mode="normal">
+        <Button
+          variant="ghost"
+          className="header-icon js-control"
+          aria-label={lights ? lightsOff : lightsOn}
+          title={lights ? lightsOff : lightsOn}
+          aria-pressed={lights}
+          onClick={(event) => toggleLights(event.currentTarget)}
+        >
+          {lights ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
+        </Button>
+      </HeaderNavigation>
+    </>
   );
 }

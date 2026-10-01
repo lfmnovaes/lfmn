@@ -14,7 +14,7 @@ const sceneChunks = new Set(
     .map((file) => `/_next/static/chunks/${file}`),
 );
 
-test('production Normal never requests Universe chunks and the preview stays unavailable', async ({
+test('production Normal never prefetches the renderer and both Universe locales load automatically', async ({
   page,
 }) => {
   expect(sceneChunks.size).toBeGreaterThan(0);
@@ -23,16 +23,25 @@ test('production Normal never requests Universe chunks and the preview stays una
   for (const path of ['/', '/pt-BR']) {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Luis');
-    const universe = page.getByRole('button', { name: /^(Universe|Universo) —/ });
-    await universe.click({ force: true });
-    await expect(page.getByRole('tooltip')).toBeVisible();
-    await expect(universe).toHaveAttribute('aria-disabled', 'true');
+    const universe = page.getByRole('button', { name: /^(Universe|Universo)$/ });
+    await universe.hover();
+    await universe.focus();
+    await expect(universe).not.toHaveAttribute('aria-disabled');
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
   }
   expect(requested.filter((path) => sceneChunks.has(path))).toEqual([]);
   expect(requested.filter((path) => /\/textures\//.test(path))).toEqual([]);
   for (const path of ['/universe-preview', '/pt-BR/universe-preview']) {
     const response = await page.goto(path);
-    expect(response?.status()).toBe(404);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');
+    await expect(page.getByRole('progressbar')).toHaveCount(0);
+    await expect(page.locator('a[download]')).toHaveCount(0);
+    await expect(page.locator('html')).toHaveAttribute(
+      'lang',
+      path.startsWith('/pt-BR') ? 'pt-BR' : 'en',
+    );
   }
-  expect(requested.filter((path) => sceneChunks.has(path))).toEqual([]);
+  expect(requested.some((path) => sceneChunks.has(path))).toBe(true);
+  expect(requested.some((path) => /\/textures\/universe\//.test(path))).toBe(true);
 });

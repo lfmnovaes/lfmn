@@ -7,7 +7,6 @@
     "skip": "Ir para o conteúdo",
     "normal": "Normal",
     "universe": "Universo",
-    "wip": "Em desenvolvimento",
     "lightsOn": "Acender as luzes",
     "lightsOff": "Apagar as luzes"
   },
@@ -192,18 +191,15 @@
   },
   "universe": {
     "preview": "Universo / Prévia de desenvolvimento",
-    "navigation": "Navegação da prévia",
+    "skipToFacts": "Ir para as informações do astro",
     "scene": "Sistema solar ilustrativo",
-    "intro": "Explore a mesma trajetória por um sistema solar ilustrativo. Selecione um astro para focar a câmera e ler o resumo da seção.",
-    "enter": "Entrar no Universo",
-    "returnNormal": "Voltar ao Normal",
     "loading": "Carregando a cena do Universo",
-    "unavailable": "A cena 3D está indisponível. A navegação pelos astros e os resumos continuam funcionando; volte ao Normal para ler o portfólio completo.",
-    "noJavaScript": "A prévia 3D precisa de JavaScript. A introdução e os currículos continuam disponíveis; o Normal contém o portfólio completo.",
+    "unavailable": "A cena 3D está indisponível. Você ainda pode escolher um astro e explorar suas informações.",
+    "noJavaScript": "A cena 3D precisa de JavaScript. As informações de todos os astros continuam disponíveis abaixo.",
     "zoomIn": "Aproximar",
     "zoomOut": "Afastar",
     "planetNavigation": "Escolher um astro",
-    "illustrative": "Sistema solar ilustrativo: tamanhos, distâncias e movimentos são artísticos. Plutão faz parte desta trajetória profissional.",
+    "illustrative": "Sistema solar ilustrativo: tamanhos, distâncias e movimentos são artísticos, sem escala real.",
     "bodies": {
       "sun": "Sol",
       "mercury": "Mercúrio",
@@ -218,6 +214,212 @@
     },
     "controls": "Controles da cena",
     "pause": "Pausar o movimento da cena",
-    "resume": "Retomar o movimento da cena"
+    "resume": "Retomar o movimento da cena",
+    "explore": "Explorar informações",
+    "closeFacts": "Fechar informações",
+    "source": "Saiba mais na NASA Science (em inglês)",
+    "measurements": "Medidas aproximadas; rotação é uma volta no eixo, não o intervalo entre dois nasceres do Sol.",
+    "position": "Posição na navegação do sistema solar",
+    "previous": "Astro anterior",
+    "next": "Próximo astro",
+    "rotateLeft": "Girar câmera para a esquerda",
+    "rotateRight": "Girar câmera para a direita",
+    "rotateUp": "Girar câmera para cima",
+    "rotateDown": "Girar câmera para baixo",
+    "gestures": "Role para viajar · Arraste para orbitar · Use dois dedos para aproximar",
+    "content": {
+      "sun": {
+        "kind": "Estrela",
+        "summary": "A estrela no centro do nosso sistema solar, alimentada pela fusão nuclear.",
+        "description": "O Sol é uma esfera de plasma mantida pela gravidade. Seu núcleo transforma hidrogênio em hélio, liberando a energia que chega à Terra como luz e calor.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 1,4 milhão de km"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 25 dias terrestres no equador"
+          },
+          {
+            "label": "Idade",
+            "value": "Cerca de 4,6 bilhões de anos"
+          }
+        ]
+      },
+      "mercury": {
+        "kind": "Planeta rochoso",
+        "summary": "O menor planeta e o mais próximo do Sol, com uma superfície rochosa e cheia de crateras.",
+        "description": "Mercúrio quase não tem atmosfera para reter calor. Sua superfície passa por grandes variações de temperatura, e sua órbita elíptica é a mais rápida entre os planetas.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 4.880 km"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 59 dias terrestres"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "88 dias terrestres"
+          }
+        ]
+      },
+      "venus": {
+        "kind": "Planeta rochoso",
+        "summary": "Um mundo rochoso cuja atmosfera densa retém calor, tornando-o o planeta mais quente.",
+        "description": "Vênus tem tamanho parecido com o da Terra, mas sua atmosfera rica em dióxido de carbono cria um intenso efeito estufa. Ele gira no sentido oposto ao da maioria dos planetas.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 12.104 km no equador"
+          },
+          {
+            "label": "Rotação",
+            "value": "243 dias terrestres"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "225 dias terrestres"
+          }
+        ]
+      },
+      "earth": {
+        "kind": "Planeta rochoso",
+        "summary": "Nosso lar coberto por oceanos, o único mundo conhecido que abriga vida.",
+        "description": "A Terra tem água líquida na superfície e uma atmosfera rica em nitrogênio e oxigênio. A inclinação de seu eixo produz as estações durante sua viagem ao redor do Sol.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 12.756 km no equador"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 23,9 horas"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "365,25 dias terrestres"
+          }
+        ]
+      },
+      "mars": {
+        "kind": "Planeta rochoso",
+        "summary": "O planeta vermelho, colorido por minerais de ferro que oxidaram em seu solo.",
+        "description": "Marte tem uma atmosfera fina, calotas polares e vestígios de antigos rios e lagos. O enorme vulcão Olympus Mons e os cânions de Valles Marineris marcam sua paisagem.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 6.780 km"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 24,6 horas"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "687 dias terrestres"
+          }
+        ]
+      },
+      "jupiter": {
+        "kind": "Gigante gasoso",
+        "summary": "O maior planeta, com faixas de nuvens e a enorme tempestade da Grande Mancha Vermelha.",
+        "description": "Júpiter é composto principalmente por hidrogênio e hélio. Suas nuvens formam faixas claras e escuras, enquanto a Grande Mancha Vermelha é uma tempestade duradoura em sua atmosfera.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 139.822 km"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 9,9 horas"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "Cerca de 12 anos terrestres"
+          }
+        ]
+      },
+      "saturn": {
+        "kind": "Gigante gasoso",
+        "summary": "Um planeta gigante cercado por anéis brilhantes, feitos principalmente de gelo, com rocha e poeira.",
+        "description": "Saturno não tem uma superfície sólida como a da Terra. As partículas dos anéis vão de pequenos grãos a grandes blocos, e sua densidade média é menor que a da água.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 120.500 km no equador"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 10,7 horas"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "Cerca de 29,4 anos terrestres"
+          }
+        ]
+      },
+      "uranus": {
+        "kind": "Gigante de gelo",
+        "summary": "Um mundo azul-esverdeado que gira quase deitado.",
+        "description": "Urano tem uma inclinação extrema de aproximadamente 98 graus. O metano na atmosfera absorve luz vermelha, contribuindo para a aparência azul-esverdeada do planeta.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 51.118 km no equador"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 17 horas"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "Cerca de 84 anos terrestres"
+          }
+        ]
+      },
+      "neptune": {
+        "kind": "Gigante de gelo",
+        "summary": "O planeta mais distante, com uma atmosfera azul e ventos intensos.",
+        "description": "Netuno foi localizado por previsões matemáticas antes da confirmação por observações diretas. O metano contribui para a cor de sua atmosfera, onde surgem tempestades e ventos muito rápidos.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 49.528 km no equador"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 16 horas"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "Cerca de 165 anos terrestres"
+          }
+        ]
+      },
+      "pluto": {
+        "kind": "Planeta anão",
+        "summary": "Um pequeno mundo gelado no Cinturão de Kuiper, além dos oito planetas.",
+        "description": "Plutão tem uma órbita alongada e inclinada, além de uma atmosfera fina. Gelo de nitrogênio cobre partes da superfície, incluindo a região clara em forma de coração vista pela New Horizons.",
+        "facts": [
+          {
+            "label": "Diâmetro",
+            "value": "Cerca de 2.377 km no equador"
+          },
+          {
+            "label": "Rotação",
+            "value": "Cerca de 153 horas"
+          },
+          {
+            "label": "Órbita ao redor do Sol",
+            "value": "248 anos terrestres"
+          }
+        ]
+      }
+    },
+    "textureCredits": "Texturas:",
+    "textureFallback": "Algumas texturas não carregaram; as ilustrações simplificadas e todas as informações continuam disponíveis."
   }
 }

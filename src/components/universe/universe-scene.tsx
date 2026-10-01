@@ -3,28 +3,68 @@
 import { type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { DoubleSide, type Mesh, Vector3 } from 'three';
+import { BackSide, DoubleSide, type Mesh, Vector3 } from 'three';
 
+import { AsteroidBelt, PlanetBody } from './universe-bodies';
 import { PLANETS, type PlanetId } from './universe-data';
+import { UniverseEffects } from './universe-effects';
+import { type AssetStatus, useUniverseTextures } from './use-universe-textures';
 
 type SceneProps = {
   selected: PlanetId;
   onSelect: (id: PlanetId) => void;
   zoom: RefObject<number>;
+  rotation: RefObject<{ x: number; y: number }>;
+  callout: RefObject<HTMLSpanElement | null>;
+  locked: boolean;
   reduced: boolean;
   onReady: (invalidate: () => void) => void;
+  onAssets: (status: AssetStatus) => void;
 };
 
-function SolarSystem({ selected, onSelect, zoom, reduced, onReady }: SceneProps) {
+function SolarSystem({
+  selected,
+  onSelect,
+  zoom,
+  rotation,
+  callout,
+  locked,
+  reduced,
+  onReady,
+  onAssets,
+}: SceneProps) {
   const bodies = useRef<(Mesh | null)[]>([]);
-  const view = useRef({ time: 0, ready: false, lookAt: new Vector3(), destination: new Vector3() });
+  const view = useRef({
+    time: 0,
+    ready: false,
+    lookAt: new Vector3(),
+    destination: new Vector3(),
+    label: new Vector3(),
+    bodyPosition: new Vector3(),
+    movement: new Vector3(),
+    planet: -1,
+  });
   const { camera, gl, invalidate, size } = useThree();
+  const textures = useUniverseTextures(onAssets);
+  const desktop = size.width >= 900;
+  const software = useMemo(() => {
+    const context = gl.getContext();
+    const debug = context.getExtension('WEBGL_debug_renderer_info');
+    return debug
+      ? /SwiftShader|llvmpipe|software/i.test(context.getParameter(debug.UNMASKED_RENDERER_WEBGL))
+      : false;
+  }, [gl]);
+  const postprocessed = desktop && !software;
+  useEffect(() => {
+    gl.domElement.dataset.effects = postprocessed ? 'bloom' : 'glow';
+  }, [gl, postprocessed]);
+  const starCount = desktop ? 3000 : 1200;
   const stars = useMemo(() => {
-    const points = new Float32Array(900 * 3);
-    for (let index = 0; index < 900; index++) {
+    const points = new Float32Array(starCount * 3);
+    for (let index = 0; index < starCount; index++) {
       const longitude = index * 2.399963229728653;
-      const height = 1 - (2 * (index + 0.5)) / 900;
-      const radius = 350;
+      const height = 1 - (2 * (index + 0.5)) / starCount;
+      const radius = 900;
       const spread = Math.sqrt(1 - height * height);
       points.set(
         [
@@ -36,9 +76,10 @@ function SolarSystem({ selected, onSelect, zoom, reduced, onReady }: SceneProps)
       );
     }
     return points;
-  }, []);
+  }, [starCount]);
 
   useFrame((_, delta) => {
+    if (locked) return;
     const state = view.current;
     const elapsed = Math.min(delta, 0.1);
     if (!reduced) state.time += elapsed;
@@ -52,15 +93,40 @@ function SolarSystem({ selected, onSelect, zoom, reduced, onReady }: SceneProps)
     const index = PLANETS.findIndex(({ id }) => id === selected);
     const body = bodies.current[index];
     if (!body) return;
-    const radius = selected === 'sun' ? 64 : Math.max(3.5, PLANETS[index].size * 4);
+    // Carry the focused body's orbital movement; smooth only the camera's approach.
+    if (state.planet === index) {
+      state.movement.copy(body.position).sub(state.bodyPosition);
+      camera.position.add(state.movement);
+      state.lookAt.add(state.movement);
+    }
+    state.bodyPosition.copy(body.position);
+    state.planet = index;
+    const radius = selected === 'sun' ? 160 : Math.max(3.5, PLANETS[index].size * 4);
     const distance =
       (radius / (Math.tan((25 * Math.PI) / 180) * Math.min(size.width / size.height, 1))) *
       zoom.current;
-    state.destination.set(distance * 0.55, distance * 0.55, distance * 0.7).add(body.position);
+    // Spherical camera offsets adapted from ExperienceOrbit's CameraRig.
+    const phi = Math.max(0.15, Math.min(Math.PI - 0.15, Math.acos(0.55) + rotation.current.y));
+    const theta = rotation.current.x;
+    state.destination
+      .set(
+        distance * Math.sin(phi) * Math.sin(theta),
+        distance * Math.cos(phi),
+        distance * Math.sin(phi) * Math.cos(theta),
+      )
+      .add(body.position);
     const weight = reduced ? 1 : 1 - Math.exp(-elapsed * 5);
     camera.position.lerp(state.destination, weight);
     state.lookAt.lerp(body.position, weight);
     camera.lookAt(state.lookAt);
+    if (callout.current) {
+      camera.updateMatrixWorld();
+      state.label.copy(body.position);
+      state.label.y += PLANETS[index].size * 1.4;
+      state.label.project(camera);
+      callout.current.hidden = Math.abs(state.label.z) > 1;
+      callout.current.style.transform = `translate(${((state.label.x + 1) * size.width) / 2}px, ${((1 - state.label.y) * size.height) / 2}px) translate(-50%, -100%)`;
+    }
     const focused =
       camera.position.distanceTo(state.destination) < radius * 0.1 &&
       state.lookAt.distanceTo(body.position) < radius * 0.1;
@@ -77,40 +143,50 @@ function SolarSystem({ selected, onSelect, zoom, reduced, onReady }: SceneProps)
   return (
     <>
       <color attach="background" args={['#050711']} />
-      <ambientLight intensity={0.65} />
-      <pointLight position={[0, 0, 0]} intensity={160} decay={1} />
+      <ambientLight intensity={0.3} />
+      <pointLight position={[0, 0, 0]} intensity={80} color="#ffaa11" decay={1.2} />
+      {textures.galaxy && (
+        <mesh rotation={[Math.PI / 3, 0, Math.PI / 4]}>
+          <sphereGeometry args={[1200, 32, 16]} />
+          <meshBasicMaterial
+            map={textures.galaxy}
+            color="#a29dba"
+            side={BackSide}
+            transparent
+            opacity={0.25}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
       <points>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[stars, 3]} />
         </bufferGeometry>
-        <pointsMaterial color="#ccd6f6" size={0.75} sizeAttenuation />
+        <pointsMaterial color="#ccd6f6" size={desktop ? 1.2 : 1.5} sizeAttenuation />
       </points>
       {PLANETS.map((planet, index) => (
         <group key={planet.id}>
           {planet.orbit > 0 && (
             <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[planet.orbit - 0.025, planet.orbit + 0.025, 128]} />
-              <meshBasicMaterial color="#64719a" transparent opacity={0.3} side={DoubleSide} />
+              <ringGeometry args={[planet.orbit - 0.045, planet.orbit + 0.045, 192]} />
+              <meshBasicMaterial color={planet.color} transparent opacity={0.2} side={DoubleSide} />
             </mesh>
           )}
-          <mesh
+          <PlanetBody
+            planet={planet}
+            texture={textures[planet.id]}
+            clouds={textures.clouds}
+            reduced={reduced || locked}
+            postprocessed={postprocessed}
+            onSelect={onSelect}
             ref={(mesh) => {
               bodies.current[index] = mesh;
             }}
-            onClick={(event) => {
-              event.stopPropagation();
-              onSelect(planet.id);
-            }}
-          >
-            <sphereGeometry args={[planet.size, 32, 24]} />
-            {planet.id === 'sun' ? (
-              <meshBasicMaterial color={planet.color} />
-            ) : (
-              <meshStandardMaterial color={planet.color} roughness={0.85} />
-            )}
-          </mesh>
+          />
         </group>
       ))}
+      <AsteroidBelt count={desktop ? 600 : 240} reduced={reduced || locked} />
+      {postprocessed && <UniverseEffects />}
     </>
   );
 }
@@ -127,8 +203,8 @@ export default function UniverseScene(props: SceneProps) {
     <Canvas
       aria-hidden="true"
       dpr={[1, 1.5]}
-      camera={{ position: [80, 80, 110], fov: 50, near: 0.1, far: 1000 }}
-      frameloop={props.reduced || !visible ? 'demand' : 'always'}
+      camera={{ position: [80, 80, 110], fov: 50, near: 0.1, far: 3000 }}
+      frameloop={props.reduced || props.locked || !visible ? 'demand' : 'always'}
     >
       <SolarSystem {...props} />
     </Canvas>

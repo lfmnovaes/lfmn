@@ -73,7 +73,6 @@ export default async function Home({ params }: Props) {
           locale={locale}
           normal={t('nav.normal')}
           universe={t('nav.universe')}
-          wip={t('nav.wip')}
           lightsOn={t('nav.lightsOn')}
           lightsOff={t('nav.lightsOff')}
           skip={t('nav.skip')}

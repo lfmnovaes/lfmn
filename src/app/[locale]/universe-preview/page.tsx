@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 
-import { ResumeDownloads } from '@/components/resume-downloads';
 import { getPlanetSummaries } from '@/components/universe/universe-data';
 import { UniversePreview } from '@/components/universe/universe-preview';
 import { routing } from '@/i18n/routing';
@@ -18,17 +17,15 @@ export default async function UniversePreviewPage({
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  if (process.env.NODE_ENV !== 'development') notFound();
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   const copy = await getMessages({ locale });
   return (
-    <UniversePreview copy={copy.universe} planets={getPlanetSummaries(copy)} locale={locale}>
-      <ResumeDownloads
-        label={copy.hero.downloads}
-        english={copy.hero.resumeEn}
-        portuguese={copy.hero.resumePt}
-      />
-    </UniversePreview>
+    <UniversePreview
+      copy={copy.universe}
+      planets={getPlanetSummaries(copy.universe)}
+      locale={locale}
+      navigation={copy.nav}
+    />
   );
 }
