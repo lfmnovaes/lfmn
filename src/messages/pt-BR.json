@@ -189,5 +189,35 @@
     "next": "Próximas tecnologias",
     "pause": "Pausar animação",
     "resume": "Retomar animação"
+  },
+  "universe": {
+    "preview": "Universo / Prévia de desenvolvimento",
+    "navigation": "Navegação da prévia",
+    "scene": "Sistema solar ilustrativo",
+    "intro": "Explore a mesma trajetória por um sistema solar ilustrativo. Selecione um astro para focar a câmera e ler o resumo da seção.",
+    "enter": "Entrar no Universo",
+    "returnNormal": "Voltar ao Normal",
+    "loading": "Carregando a cena do Universo",
+    "unavailable": "A cena 3D está indisponível. A navegação pelos astros e os resumos continuam funcionando; volte ao Normal para ler o portfólio completo.",
+    "noJavaScript": "A prévia 3D precisa de JavaScript. A introdução e os currículos continuam disponíveis; o Normal contém o portfólio completo.",
+    "zoomIn": "Aproximar",
+    "zoomOut": "Afastar",
+    "planetNavigation": "Escolher um astro",
+    "illustrative": "Sistema solar ilustrativo: tamanhos, distâncias e movimentos são artísticos. Plutão faz parte desta trajetória profissional.",
+    "bodies": {
+      "sun": "Sol",
+      "mercury": "Mercúrio",
+      "venus": "Vênus",
+      "earth": "Terra",
+      "mars": "Marte",
+      "jupiter": "Júpiter",
+      "saturn": "Saturno",
+      "uranus": "Urano",
+      "neptune": "Netuno",
+      "pluto": "Plutão"
+    },
+    "controls": "Controles da cena",
+    "pause": "Pausar o movimento da cena",
+    "resume": "Retomar o movimento da cena"
   }
 }

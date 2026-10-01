@@ -189,5 +189,35 @@
     "next": "Next technologies",
     "pause": "Pause animation",
     "resume": "Resume animation"
+  },
+  "universe": {
+    "preview": "Universe / Development preview",
+    "navigation": "Preview navigation",
+    "scene": "Illustrative solar system",
+    "intro": "Explore the same career through an illustrative solar system. Select a body to focus the camera and read its section summary.",
+    "enter": "Enter Universe",
+    "returnNormal": "Return to Normal",
+    "loading": "Loading Universe scene",
+    "unavailable": "The 3D scene is unavailable. Planet navigation and career summaries still work; return to Normal to read the complete portfolio.",
+    "noJavaScript": "The 3D preview needs JavaScript. The introduction and résumé links remain available; Normal contains the complete portfolio.",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "planetNavigation": "Choose a planet",
+    "illustrative": "Illustrative solar system: sizes, distances, and motion are artistic. Pluto is included in this career journey.",
+    "bodies": {
+      "sun": "Sun",
+      "mercury": "Mercury",
+      "venus": "Venus",
+      "earth": "Earth",
+      "mars": "Mars",
+      "jupiter": "Jupiter",
+      "saturn": "Saturn",
+      "uranus": "Uranus",
+      "neptune": "Neptune",
+      "pluto": "Pluto"
+    },
+    "controls": "Scene controls",
+    "pause": "Pause scene motion",
+    "resume": "Resume scene motion"
   }
 }

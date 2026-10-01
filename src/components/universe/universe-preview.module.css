@@ -1,0 +1,139 @@
+.preview {
+  --background: #050711;
+  --foreground: #e8edf8;
+  --secondary: #141b2b;
+  --muted: #a2adc4;
+  --primary: #aab5ff;
+  --primary-foreground: #111729;
+  --border: #ffffff24;
+  display: grid;
+  grid-template-rows: auto minmax(240px, 1fr) auto;
+  height: 100svh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.header {
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.header p {
+  margin: 4px 0 0;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+.links > a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+}
+.links > a[aria-current] {
+  color: var(--primary);
+  font-weight: 700;
+}
+.stage {
+  position: relative;
+  min-height: 240px;
+}
+.notice {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+}
+.notice p {
+  max-width: 48ch;
+  margin: 0;
+}
+.zoom {
+  position: absolute;
+  top: 12px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.zoom button {
+  width: 44px;
+  padding: 0;
+}
+.hud {
+  z-index: 1;
+  display: grid;
+  gap: 16px;
+  width: min(100%, 1000px);
+  margin-inline: auto;
+  padding: 16px 24px;
+}
+.planets {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  background: var(--secondary);
+}
+.planet {
+  min-width: 0;
+  padding-inline: 4px;
+}
+.planet[aria-pressed="true"] {
+  background: var(--background);
+}
+.summary {
+  max-width: 72ch;
+}
+.summary h1 {
+  margin: 6px 0;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.2;
+}
+.summary > p:not([class]) {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.caption {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (min-width: 900px) {
+  .planets {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .header,
+  .hud {
+    padding-inline: 16px;
+  }
+  .links {
+    gap: 10px;
+  }
+  .zoom {
+    right: 16px;
+  }
+}

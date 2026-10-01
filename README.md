@@ -43,6 +43,16 @@ npm run typecheck
 
 Biome organizes imports into built-ins, framework packages, other packages, repository aliases, and relative paths. Side-effect imports retain their order.
 
+## Universe development preview
+
+With `npm run dev`, open `/universe-preview` or `/pt-BR/universe-preview`, then select **Enter Universe**. The preview uses primitive geometry for the Sun and planets through Pluto, accessible planet selection, camera focus, zoom, and motion pausing. Reduced motion uses a stationary scene with direct focus changes.
+
+Three.js/R3F load only on entry. The initial preview still uses career summaries and résumé downloads; the revised roadmap replaces them with EN/PT facts about the Sun and planets, with no biography or downloads in Universe. Unsupported WebGL or failed scene loading keeps the DOM content and Normal return available. The preview returns 404 in production, and the public Universe control stays WIP until the roadmap's release checks pass.
+
+Universe code and styles live in `src/components/universe`. Its renderer uses Three meshes rather than DOM elements, so Biome's `noStaticElementInteractions` exception is scoped to that file; named DOM controls provide keyboard equivalents for canvas selection. Textures, gestures, and drawers belong to later roadmap stages.
+
+Three.js and its types are pinned to r182 because stable React Three Fiber 9 still constructs `THREE.Clock`, deprecated in r183 onward. Revisit the pin when Fiber's replacement scheduler reaches a stable release; do not suppress the warning or patch dependency internals.
+
 ## Tests
 
 Install the browsers used by Playwright:

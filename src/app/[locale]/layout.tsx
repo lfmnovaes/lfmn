@@ -39,6 +39,10 @@ export default async function Layout({
   if (!hasLocale(routing.locales, locale)) notFound();
   return (
     <html lang={locale} className={`${geist.variable} ${display.variable}`}>
+      <head>
+        {/* Cross-document opt-in must be available before external styles load. */}
+        <style>{'@view-transition { navigation: auto; types: locale; }'}</style>
+      </head>
       <body>
         <SiteShell>{children}</SiteShell>
         <Analytics />

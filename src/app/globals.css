@@ -1681,10 +1681,6 @@ h2 {
   }
 }
 
-@view-transition {
-  navigation: auto;
-  types: locale;
-}
 @media (prefers-reduced-motion: no-preference) {
   :root:active-view-transition-type(locale) .locale-switch [data-slot="selection-indicator"] {
     view-transition-name: language-selection;

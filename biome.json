@@ -42,6 +42,16 @@
       "next": "recommended"
     }
   },
+  "overrides": [
+    {
+      "includes": ["src/components/universe/universe-scene.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": { "noStaticElementInteractions": "off" }
+        }
+      }
+    }
+  ],
   "assist": {
     "actions": {
       "source": {

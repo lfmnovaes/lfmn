@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
   outputDir: './test-results/development',
-  testMatch: 'dev.spec.ts',
+  testMatch: ['dev.spec.ts', '*.dev.spec.ts'],
   timeout: 60_000,
   workers: 1,
   use: {
