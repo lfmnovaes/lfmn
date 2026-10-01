@@ -1,4 +1,5 @@
 import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { notFound } from 'next/navigation';
@@ -39,6 +40,7 @@ export default async function Layout({
       <body>
         <SiteShell>{children}</SiteShell>
         <Analytics />
+        <SpeedInsights />
         <noscript>
           <style>{`
             .js-control { display: none }
