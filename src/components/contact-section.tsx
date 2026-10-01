@@ -1,5 +1,7 @@
 import { ArrowUpRight, Mail } from 'lucide-react';
+
 import type messages from '@/messages/en.json';
+
 import { Github, Linkedin } from './brand-icons';
 
 export function ContactSection({ copy }: { copy: typeof messages.contact }) {
@@ -10,7 +12,7 @@ export function ContactSection({ copy }: { copy: typeof messages.contact }) {
         <h2 id="contact-title">
           {copy.title}
           <br />
-          <span>{copy.accent}</span>
+          <span className="section-accent">{copy.accent}</span>
         </h2>
         <p className="section-description">{copy.body}</p>
       </div>

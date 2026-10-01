@@ -5,6 +5,30 @@ test.beforeEach(async ({ page }) => {
   await page.routeWebSocket('wss://data-stream.binance.vision/**', (socket) => socket.close());
 });
 
+test('local pause controls retain the pause after focus leaves and resume on request', async ({
+  page,
+}) => {
+  await page.goto('/');
+  for (const [container, track] of [
+    ['.technology-viewport', '.technology-track'],
+    ['.service-feed', '.service-track'],
+  ]) {
+    const region = page.locator(container).first();
+    await region.scrollIntoViewIfNeeded();
+    const pause = region.getByRole('button', { name: 'Pause animation' });
+    await pause.focus();
+    await page.keyboard.press('Space');
+    await expect(region).toHaveAttribute('data-paused', 'true');
+    await page.getByRole('button', { name: 'Normal', exact: true }).focus();
+    await page.mouse.move(0, 0);
+    await expect(region.locator(track)).toHaveCSS('animation-play-state', 'paused');
+    await region.getByRole('button', { name: 'Resume animation' }).focus();
+    await page.keyboard.press('Space');
+    await page.getByRole('button', { name: 'Normal', exact: true }).focus();
+    await expect(region.locator(track)).toHaveCSS('animation-play-state', 'running');
+  }
+});
+
 test('technology names and local SVGs survive both palettes, languages, and narrow layouts', async ({
   page,
   request,
@@ -98,7 +122,7 @@ test('marquees animate automatically, pause on hover/focus, and adapt to reduced
     await expect(track).toHaveCSS('animation-play-state', 'paused');
     const card = first.locator('.technology-card').filter({ hasText: 'TypeScript' }).first();
     await page.mouse.move(0, 0);
-    await first.focus();
+    await first.getByRole('button').first().focus();
     const width = (await card.boundingBox())?.width ?? 0;
     await card.hover();
     await expect.poll(async () => (await card.boundingBox())?.width ?? 0).toBeGreaterThan(width);
@@ -106,14 +130,18 @@ test('marquees animate automatically, pause on hover/focus, and adapt to reduced
       .poll(async () => (await card.locator('img').boundingBox())?.width ?? 0)
       .toBeGreaterThan(52);
     await page.mouse.move(0, 0);
-    await first.evaluate((node) => (node as HTMLElement).blur());
+    await first
+      .getByRole('button')
+      .first()
+      .evaluate((node) => (node as HTMLElement).blur());
     await expect(track).toHaveCSS('animation-play-state', 'running');
   }
-  await first.focus();
-  await expect(first).toBeFocused();
+  await first.getByRole('button').first().focus();
+  await expect(first.getByRole('button').first()).toBeFocused();
   await expect(track).toHaveCSS('animation-play-state', 'paused');
   await page.keyboard.press('Tab');
-  await expect(rows.nth(1)).toBeFocused();
+  await expect(first.getByRole('button').nth(1)).toBeFocused();
+  await rows.nth(1).getByRole('button').first().focus();
   await expect(track).toHaveCSS('animation-play-state', 'running');
   const transform = await track.evaluate((node) => getComputedStyle(node).transform);
   await expect
@@ -144,7 +172,7 @@ test('each carousel can be dragged both ways, wraps continuously, and supports a
   const rows = page.locator('.technology-viewport');
   for (const row of await rows.all()) {
     await row.scrollIntoViewIfNeeded();
-    await row.focus();
+    await row.getByRole('button').first().focus();
     await expect(row).toHaveCSS('cursor', 'grab');
     await expect(row).toHaveCSS('touch-action', 'pan-y pinch-zoom');
     const track = row.locator('.technology-track');
@@ -198,14 +226,17 @@ test('each carousel can be dragged both ways, wraps continuously, and supports a
     await expect(row).not.toHaveAttribute('data-dragging', 'true');
     await page.mouse.up();
     await page.mouse.move(0, 0);
-    await row.evaluate((node) => (node as HTMLElement).blur());
+    await row
+      .getByRole('button')
+      .first()
+      .evaluate((node) => (node as HTMLElement).blur());
     await expect(track).toHaveCSS('animation-play-state', 'running');
   }
   if (isMobile) {
     const session = await page.context().newCDPSession(page);
     const row = rows.first();
     await row.scrollIntoViewIfNeeded();
-    await row.focus();
+    await row.getByRole('button').first().focus();
     const track = row.locator('.technology-track');
     await track.evaluate((node) => {
       const animation = node.getAnimations()[0];

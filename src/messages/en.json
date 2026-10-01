@@ -183,5 +183,11 @@
     "body": "Have something in mind? I'd like to hear about it.",
     "email": "Say hello",
     "footer": "Thoughtfully built on a small blue planet."
+  },
+  "motion": {
+    "previous": "Previous technologies",
+    "next": "Next technologies",
+    "pause": "Pause animation",
+    "resume": "Resume animation"
   }
 }

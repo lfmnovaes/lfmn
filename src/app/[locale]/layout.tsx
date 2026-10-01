@@ -1,9 +1,11 @@
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import { notFound } from 'next/navigation';
 import { hasLocale } from 'next-intl';
+
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+
 import { SiteShell } from '@/components/site-shell';
 import { routing } from '@/i18n/routing';
 import '../globals.css';

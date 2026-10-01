@@ -1,0 +1,53 @@
+.group {
+  position: relative;
+  isolation: isolate;
+  min-inline-size: 0;
+  margin: 0;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: var(--segment-padding, 2px);
+  border: 1px solid var(--border);
+  border-radius: var(--segment-radius, 12px);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding-inline: 10px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.item:hover {
+  color: var(--foreground);
+}
+
+.item[aria-pressed="true"] {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.indicator {
+  position: absolute;
+  z-index: -1;
+  inset-block: var(--segment-padding, 2px);
+  left: var(--segment-padding, 2px);
+  width: calc((100% - 2 * var(--segment-padding, 2px)) / var(--segments));
+  border-radius: calc(var(--segment-radius, 12px) - var(--segment-padding, 2px));
+  background: var(--surface);
+  pointer-events: none;
+  transform: translateX(calc(var(--selection) * 100%));
+  transition: transform 500ms linear(0, 0.35 15%, 0.8 30%, 1.06 55%, 0.98 75%, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator {
+    transition: none;
+  }
+}

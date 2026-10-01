@@ -1,4 +1,5 @@
 import { UserRound } from 'lucide-react';
+
 import { PortraitMagnet } from './portrait-magnet';
 
 export function PortraitPlaceholder({

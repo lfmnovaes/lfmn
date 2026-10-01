@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+
 import robots from '../src/app/robots';
 import sitemap from '../src/app/sitemap';
 import { getSiteOrigin } from '../src/lib/site-origin';

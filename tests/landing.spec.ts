@@ -329,7 +329,7 @@ test('native lights reveal, sticky header, language routes, and keyboard skip wo
   await page.getByRole('button', { name: 'Turn the lights off' }).click();
   await expect(page.locator('.site-shell')).toHaveAttribute('data-lights', 'off');
   await expect(page.locator('a[href^="#"]')).toHaveCount(0);
-  await expect(page.locator('.site-header nav')).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Language' })).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Curiosity drives me. Craft keeps me going.' }),
   ).toHaveCount(0);
@@ -544,14 +544,17 @@ test('the matte header and wordmark return to the top quickly without reloading 
         .at(-1),
     );
     expect(alpha).toBe(0.8);
-    const timeOrigin = await page.evaluate(() => performance.timeOrigin);
     const wordmark = header.locator('.wordmark');
+    await page.clock.install();
+    await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now() + 1000)));
+    const timeOrigin = await page.evaluate(() => performance.timeOrigin);
     await wordmark.click();
-    await page.waitForTimeout(80);
+    await page.clock.runFor(80);
     const midway = await page.evaluate(() => scrollY);
     expect(midway).toBeGreaterThan(0);
     expect(midway).toBeLessThan(1500);
-    await expect.poll(() => page.evaluate(() => scrollY), { timeout: 1000 }).toBe(0);
+    await page.clock.runFor(350);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(timeOrigin);
     await expect(page).toHaveURL(path === '/' ? /\/$/ : /\/pt-BR$/);
     await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
@@ -561,18 +564,20 @@ test('the matte header and wordmark return to the top quickly without reloading 
       // Deliver interruption before the first frame, independently of browser-driver latency.
       window.dispatchEvent(new WheelEvent('wheel', { deltaY: 300 }));
     });
-    await page.waitForTimeout(400);
+    await page.clock.runFor(400);
     expect(await page.evaluate(() => scrollY)).toBeGreaterThan(1400);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
     await expect(page.locator('.site-shell')).toHaveAttribute('data-scrolled', 'true');
     await wordmark.focus();
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(60);
+    await page.clock.runFor(60);
     const gentleMidway = await page.evaluate(() => scrollY);
     expect(gentleMidway).toBeGreaterThan(0);
     expect(gentleMidway).toBeLessThan(1500);
-    await expect.poll(() => page.evaluate(() => scrollY), { timeout: 800 }).toBe(0);
+    await page.clock.runFor(250);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+    await page.clock.resume();
     expect(await page.evaluate(() => performance.timeOrigin)).toBe(timeOrigin);
   }
 });

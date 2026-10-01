@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+
 import { chromium } from '@playwright/test';
 
 const root = new URL('../', import.meta.url);

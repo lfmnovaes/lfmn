@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+
 import styles from './name-cover.module.css';
 import { NameHover } from './name-hover';
 

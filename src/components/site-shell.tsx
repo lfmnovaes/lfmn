@@ -3,6 +3,8 @@
 import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
+import { PortalContainerContext } from './ui/portal-container';
+
 const LightingContext = createContext({
   lights: false,
   toggleLights: (_origin: HTMLElement) => {},
@@ -110,18 +112,20 @@ export function SiteShell({ children }: { children: ReactNode }) {
 
   return (
     <LightingContext.Provider value={{ lights, toggleLights }}>
-      <div
-        ref={shell}
-        className="site-shell min-h-screen bg-background text-foreground"
-        data-motion="on"
-        data-lights={lights ? 'on' : 'off'}
-      >
-        <div className="page-mesh" aria-hidden="true">
-          <div className="mesh-lines" />
-          <div className="mesh-spotlight" />
+      <PortalContainerContext.Provider value={shell}>
+        <div
+          ref={shell}
+          className="site-shell min-h-screen bg-background text-foreground"
+          data-motion="on"
+          data-lights={lights ? 'on' : 'off'}
+        >
+          <div className="page-mesh" aria-hidden="true">
+            <div className="mesh-lines" />
+            <div className="mesh-spotlight" />
+          </div>
+          <div className="relative z-1 pt-px">{children}</div>
         </div>
-        <div className="relative z-1 pt-px">{children}</div>
-      </div>
+      </PortalContainerContext.Provider>
     </LightingContext.Provider>
   );
 }

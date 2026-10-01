@@ -1,3 +1,7 @@
+import Image from 'next/image';
+
+import type messages from '@/messages/en.json';
+
 import { TechnologyCarousel } from './technology-carousel';
 
 const rows = [
@@ -40,11 +44,13 @@ export function TechnologyStrip({
   intro,
   categories,
   instructions,
+  controls,
 }: {
   title: string;
   intro: string;
   categories: string[];
   instructions: string;
+  controls: typeof messages.motion;
 }) {
   return (
     <section className="technology-section page-width" aria-labelledby="technology-title">
@@ -61,7 +67,7 @@ export function TechnologyStrip({
             <h3 className="eyebrow" id={`technology-category-${index}`}>
               {categories[index]}
             </h3>
-            <TechnologyCarousel labelledBy={`technology-category-${index}`}>
+            <TechnologyCarousel labelledBy={`technology-category-${index}`} controls={controls}>
               <div className="technology-track">
                 {[false, true].map((duplicate) => (
                   <ul
@@ -75,8 +81,7 @@ export function TechnologyStrip({
                         key={name}
                       >
                         <span className="technology-icon grid size-16 place-items-center rounded-xl bg-[#f8f9fc]">
-                          {/* biome-ignore lint/performance/noImgElement: Local SVG logos need no raster optimization or image client runtime. */}
-                          <img
+                          <Image
                             className="block size-13 object-contain"
                             src={`/technologies/${icon}.svg`}
                             alt=""
@@ -84,6 +89,7 @@ export function TechnologyStrip({
                             height={52}
                             loading="lazy"
                             decoding="async"
+                            unoptimized
                           />
                         </span>
                         <span>{name}</span>

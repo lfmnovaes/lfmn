@@ -18,12 +18,13 @@ Edit `src/app/[locale]/page.tsx` to update the page. Changes appear automaticall
 ## Project structure
 
 - `src/app/[locale]/page.tsx` composes the portfolio and generates localized metadata.
-- `src/messages` holds English and Portuguese content. Section props use its inferred types.
-- `src/components` holds portfolio sections and interactive components; `ui` holds the shared Base UI primitives.
+- `src/messages` holds English and Portuguese content. `src/i18n/types.d.ts` types message keys and locales; the explicit lazy loaders check both message shapes.
+- `src/components` holds portfolio sections and interactive components; `ui` holds adapted shadcn/Base UI primitives. Segmented controls share an indicator and a CSS module. Overlay portals inherit the palette from `SiteShell`.
 - Static sections and portrait markup stay on the server. `PortraitMagnet`, `NameHover`, and `TechnologyCarousel` accept rendered children and own only their browser interactions.
 - `src/hooks/use-market-chart.ts` owns visibility, requests, WebSocket retries, and chart cleanup. Selection state stays in `MarketPanel`.
-- `src/lib/market-data.ts` validates external data; `market-chart.ts` adapts Lightweight Charts and loads on demand.
-- `src/app/globals.css` holds shared tokens, section styles, and responsive rules. The name decoration uses a colocated CSS module.
+- `src/lib/market-data.ts` validates external data; `market-chart.ts` adapts Lightweight Charts and loads on demand. Its theme observer repaints from inherited CSS tokens without restarting market requests.
+- `src/app/globals.css` holds shared tokens, section styles, and responsive rules. The name decoration and segmented controls use colocated CSS modules. Local marquee buttons support keyboard browsing and persistent pausing.
+- Language links keep their native navigation behavior. Supporting browsers animate the selection using cross-document View Transitions; reduced motion uses the static selection.
 
 ## Production
 
@@ -39,6 +40,8 @@ npm run format
 npm run lint
 npm run typecheck
 ```
+
+Biome organizes imports into built-ins, framework packages, other packages, repository aliases, and relative paths. Side-effect imports retain their order.
 
 ## Tests
 

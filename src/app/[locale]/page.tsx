@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { hasLocale } from 'next-intl';
+import { getMessages, getTranslations } from 'next-intl/server';
+
 import { ContactSection } from '@/components/contact-section';
 import { EngineeringBento } from '@/components/engineering-bento';
 import { ExperienceSection } from '@/components/experience-section';
@@ -9,11 +12,13 @@ import { PortraitPlaceholder } from '@/components/portrait-placeholder';
 import { ResumeDownloads } from '@/components/resume-downloads';
 import { RoleTypewriter } from '@/components/role-typewriter';
 import { TechnologyStrip } from '@/components/technology-strip';
+import { routing } from '@/i18n/routing';
 import { getSiteOrigin } from '@/lib/site-origin';
 
 type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: 'meta' });
   const origin = getSiteOrigin();
   const path = locale === 'en' ? '/' : '/pt-BR';
@@ -55,7 +60,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function Home({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale });
+  if (!hasLocale(routing.locales, locale)) notFound();
+  const [t, copy] = await Promise.all([getTranslations({ locale }), getMessages({ locale })]);
   return (
     <>
       <header className="site-header">
@@ -80,7 +86,7 @@ export default async function Home({ params }: Props) {
               <span className="hero-greeting">{t('hero.greeting')}</span>
               <NameCover name={`${t('hero.first')} ${t('hero.last')}`} />
             </h1>
-            <RoleTypewriter roles={t.raw('hero.roles')} />
+            <RoleTypewriter roles={copy.hero.roles} />
             <div className="experience-card">
               <p className="hero-position">{t('hero.experience')}</p>
               <p className="hero-description">{t('hero.description')}</p>
@@ -94,18 +100,24 @@ export default async function Home({ params }: Props) {
           <PortraitPlaceholder
             label={t('hero.portrait')}
             note={t('hero.portraitNote')}
-            badges={t.raw('hero.badges')}
+            badges={copy.hero.badges}
           />
         </section>
         <TechnologyStrip
           title={t('technologies.title')}
           intro={t('technologies.intro')}
-          categories={t.raw('technologies.categories')}
+          categories={copy.technologies.categories}
           instructions={t('technologies.instructions')}
+          controls={copy.motion}
         />
-        <EngineeringBento copy={t.raw('engineering')} market={t.raw('market')} locale={locale} />
-        <ExperienceSection copy={t.raw('experience')} />
-        <ContactSection copy={t.raw('contact')} />
+        <EngineeringBento
+          copy={copy.engineering}
+          market={copy.market}
+          locale={locale}
+          controls={copy.motion}
+        />
+        <ExperienceSection copy={copy.experience} />
+        <ContactSection copy={copy.contact} />
       </main>
       <footer className="site-footer page-width">
         <span className="wordmark">lfmn</span>

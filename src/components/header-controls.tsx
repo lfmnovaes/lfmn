@@ -1,9 +1,16 @@
 'use client';
-import { Grid2X2, Moon, Rocket, Sun } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+
+import { Grid2X2, Moon, Rocket, Sun } from 'lucide-react';
+
+import type { Locale } from '@/i18n/routing';
+
 import { Github } from './brand-icons';
 import { useLighting } from './site-shell';
 import { Button } from './ui/button';
+import { ButtonGroup } from './ui/button-group';
+import styles from './ui/segmented-control.module.css';
+import { SelectionIndicator } from './ui/selection-indicator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 export function Wordmark({ href, label }: { href: string; label: string }) {
@@ -48,6 +55,71 @@ export function Wordmark({ href, label }: { href: string; label: string }) {
   );
 }
 
+function ModeSwitch({
+  locale,
+  normal,
+  universe,
+  wip,
+}: {
+  locale: Locale;
+  normal: string;
+  universe: string;
+  wip: string;
+}) {
+  const [wipOpen, setWipOpen] = useState(false);
+  return (
+    <ButtonGroup
+      className="mode-switch"
+      aria-label={locale === 'en' ? 'Site mode' : 'Modo do site'}
+    >
+      <SelectionIndicator index={0} count={2} />
+      <Button variant="ghost" aria-pressed="true" aria-label={normal} className="mode-button">
+        <Grid2X2 aria-hidden="true" />
+        <span className="mode-label">{normal}</span>
+      </Button>
+      <TooltipProvider delay={0} closeDelay={0}>
+        <Tooltip open={wipOpen} onOpenChange={setWipOpen} disableHoverablePopup>
+          <TooltipTrigger
+            render={<Button variant="ghost" className="mode-button wip-button" />}
+            aria-disabled="true"
+            aria-label={`${universe} — ${wip}`}
+            closeOnClick={false}
+            onMouseEnter={() => setWipOpen(true)}
+            onMouseLeave={() => setWipOpen(false)}
+            onClick={() => setWipOpen(true)}
+          >
+            <Rocket aria-hidden="true" />
+            <span className="mode-label">{universe}</span>
+          </TooltipTrigger>
+          <TooltipContent>{wip}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </ButtonGroup>
+  );
+}
+
+function LanguageSwitch({ locale }: { locale: Locale }) {
+  return (
+    <nav
+      className={`locale-switch ${styles.group}`}
+      aria-label={locale === 'en' ? 'Language' : 'Idioma'}
+    >
+      <SelectionIndicator index={locale === 'en' ? 0 : 1} count={2} />
+      <a href="/" lang="en" hrefLang="en" aria-current={locale === 'en' ? 'page' : undefined}>
+        EN
+      </a>
+      <a
+        href="/pt-BR"
+        lang="pt-BR"
+        hrefLang="pt-BR"
+        aria-current={locale === 'pt-BR' ? 'page' : undefined}
+      >
+        PT
+      </a>
+    </nav>
+  );
+}
+
 export function HeaderControls({
   locale,
   normal,
@@ -57,7 +129,7 @@ export function HeaderControls({
   lightsOff,
   skip,
 }: {
-  locale: string;
+  locale: Locale;
   normal: string;
   universe: string;
   wip: string;
@@ -66,7 +138,6 @@ export function HeaderControls({
   skip: string;
 }) {
   const { lights, toggleLights } = useLighting();
-  const [wipOpen, setWipOpen] = useState(false);
   return (
     <div className="header-controls ml-auto flex items-center gap-2">
       <button
@@ -76,29 +147,7 @@ export function HeaderControls({
       >
         {skip}
       </button>
-      <fieldset className="mode-switch" aria-label={locale === 'en' ? 'Site mode' : 'Modo do site'}>
-        <Button variant="ghost" aria-pressed="true" aria-label={normal} className="mode-button">
-          <Grid2X2 aria-hidden="true" />
-          <span className="mode-label">{normal}</span>
-        </Button>
-        <TooltipProvider delay={0} closeDelay={0}>
-          <Tooltip open={wipOpen} onOpenChange={setWipOpen} disableHoverablePopup>
-            <TooltipTrigger
-              render={<Button variant="ghost" className="mode-button wip-button" />}
-              aria-disabled="true"
-              aria-label={`${universe} — ${wip}`}
-              closeOnClick={false}
-              onMouseEnter={() => setWipOpen(true)}
-              onMouseLeave={() => setWipOpen(false)}
-              onClick={() => setWipOpen(true)}
-            >
-              <Rocket aria-hidden="true" />
-              <span className="mode-label">{universe}</span>
-            </TooltipTrigger>
-            <TooltipContent>{wip}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </fieldset>
+      <ModeSwitch locale={locale} normal={normal} universe={universe} wip={wip} />
       <a
         href="https://github.com/lfmnovaes"
         target="_blank"
@@ -119,20 +168,7 @@ export function HeaderControls({
       >
         {lights ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
       </Button>
-      <fieldset className="locale-switch" aria-label={locale === 'en' ? 'Language' : 'Idioma'}>
-        <a href="/" lang="en" hrefLang="en" aria-current={locale === 'en' ? 'page' : undefined}>
-          EN
-        </a>
-        <span aria-hidden="true">/</span>
-        <a
-          href="/pt-BR"
-          lang="pt-BR"
-          hrefLang="pt-BR"
-          aria-current={locale === 'pt-BR' ? 'page' : undefined}
-        >
-          PT
-        </a>
-      </fieldset>
+      <LanguageSwitch locale={locale} />
     </div>
   );
 }

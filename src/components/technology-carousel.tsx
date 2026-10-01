@@ -1,15 +1,24 @@
 'use client';
 
-import { type PointerEvent, type ReactNode, useRef } from 'react';
+import { type PointerEvent, type ReactNode, useRef, useState } from 'react';
+
+import { ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react';
+
+import type messages from '@/messages/en.json';
+
+import { Button } from './ui/button';
 
 export function TechnologyCarousel({
   labelledBy,
+  controls,
   children,
 }: {
   labelledBy: string;
+  controls: typeof messages.motion;
   children: ReactNode;
 }) {
   const viewport = useRef<HTMLElement>(null);
+  const [paused, setPaused] = useState(false);
   const drag = useRef<{ x: number; time: number; animation: Animation; rate: number } | null>(null);
 
   function playback() {
@@ -36,6 +45,7 @@ export function TechnologyCarousel({
 
   function start(event: PointerEvent<HTMLElement>) {
     if (!event.isPrimary || event.button !== 0) return;
+    if ((event.target as Element).closest('button')) return;
     const active = playback();
     if (!active) return;
     event.preventDefault();
@@ -44,12 +54,17 @@ export function TechnologyCarousel({
     drag.current = { ...active, x: event.clientX, time: Number(active.animation.currentTime) };
   }
 
+  function browse(pixels: number) {
+    const active = playback();
+    if (active)
+      shift(active.animation, Number(active.animation.currentTime) + pixels * active.rate);
+  }
+
   return (
     <section
       ref={viewport}
       className="technology-viewport"
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: Focus pauses the carousel and arrow keys browse its contents.
-      tabIndex={0}
+      data-paused={paused || undefined}
       aria-labelledby={labelledBy}
       aria-describedby="technology-instructions"
       onPointerDown={start}
@@ -64,16 +79,26 @@ export function TechnologyCarousel({
       onDragStart={(event) => event.preventDefault()}
       onKeyDown={(event) => {
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-        const active = playback();
-        if (!active) return;
         event.preventDefault();
-        shift(
-          active.animation,
-          Number(active.animation.currentTime) +
-            (event.key === 'ArrowRight' ? -168 : 168) * active.rate,
-        );
+        browse(event.key === 'ArrowRight' ? -168 : 168);
       }}
     >
+      <div className="marquee-controls js-control">
+        <Button variant="ghost" aria-label={controls.previous} onClick={() => browse(168)}>
+          <ArrowLeft aria-hidden="true" />
+        </Button>
+        <Button
+          variant="ghost"
+          aria-label={paused ? controls.resume : controls.pause}
+          aria-pressed={paused}
+          onClick={() => setPaused((value) => !value)}
+        >
+          {paused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}
+        </Button>
+        <Button variant="ghost" aria-label={controls.next} onClick={() => browse(-168)}>
+          <ArrowRight aria-hidden="true" />
+        </Button>
+      </div>
       {children}
     </section>
   );

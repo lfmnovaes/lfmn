@@ -1,7 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page, test, type WebSocketRoute } from '@playwright/test';
+
 import type { MarketInterval, MarketSymbol } from '../src/lib/market-data';
-import { MARKET_INTERVALS, parseHistory, parseMarketEvent } from '../src/lib/market-data';
+import {
+  MARKET_INTERVALS,
+  MARKET_SYMBOLS,
+  parseHistory,
+  parseMarketEvent,
+} from '../src/lib/market-data';
 
 const prices = { PAXGUSDT: 4000, BTCUSDT: 65000, ETHUSDT: 2500 };
 function history(
@@ -67,6 +73,11 @@ async function fixture(
   });
   return { requests, sockets };
 }
+async function chooseInstrument(page: Page, symbol: MarketSymbol) {
+  await page.getByRole('combobox').click();
+  await page.getByRole('option', { name: `${MARKET_SYMBOLS[symbol]} / USDT`, exact: true }).click();
+}
+
 async function show(page: Page, path = '/') {
   await page.goto(path);
   await page.locator('.market-card').scrollIntoViewIfNeeded();
@@ -128,9 +139,9 @@ test('switches instruments and intervals without letting an obsolete response ov
   await expect.poll(() => sockets.length).toBe(1);
   sockets[0].route.send(tick());
   await expect(page.locator('.market-status')).toHaveText('Live');
-  await page.getByLabel('Market instrument', { exact: true }).selectOption('BTCUSDT');
+  await chooseInstrument(page, 'BTCUSDT');
   await expect.poll(() => requests.some((query) => query.includes('BTCUSDT'))).toBe(true);
-  await page.getByLabel('Market instrument', { exact: true }).selectOption('ETHUSDT');
+  await chooseInstrument(page, 'ETHUSDT');
   await expect(page.getByTestId('market-price')).toHaveText('2,501.00');
   release();
   await expect.poll(() => sockets[0].closed).toBe(true);
@@ -176,6 +187,76 @@ test('blocked and malformed history clears loading and can recover with Retry', 
   sockets[0].route.send(tick());
   await expect(page.locator('.market-status')).toHaveText('Live');
   await expect(page.getByRole('progressbar')).toHaveCount(0);
+});
+
+test('intervals keep one selection, support keyboard navigation, and disable indicator motion when requested', async ({
+  page,
+}) => {
+  const { requests } = await fixture(page);
+  await show(page);
+  const group = page.getByRole('group', { name: 'Candle interval' });
+  const one = group.getByRole('button', { name: '1m', exact: true });
+  await expect(one).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('market-price')).toHaveText('4,001.00');
+  const count = requests.length;
+  await one.click();
+  await expect(group.locator('[aria-pressed="true"]')).toHaveCount(1);
+  expect(requests).toHaveLength(count);
+  await one.focus();
+  await page.keyboard.press('ArrowRight');
+  const five = group.getByRole('button', { name: '5m', exact: true });
+  await expect(five).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(five).toHaveAttribute('aria-pressed', 'true');
+  await expect(group.locator('[aria-pressed="true"]')).toHaveCount(1);
+  await expect.poll(() => requests.some((query) => query.includes('interval=5m'))).toBe(true);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await group.getByRole('button', { name: '1h', exact: true }).click();
+  const indicator = group.locator('[data-slot="selection-indicator"]');
+  await expect(indicator).toHaveCSS('transition-duration', '0s');
+  expect(await indicator.evaluate((node) => node.getAnimations().length)).toBe(0);
+  await expect(group.locator('[aria-pressed="true"]')).toHaveCount(1);
+});
+
+test('Select and tooltip inherit the light palette, while chart theme changes do not restart the stream', async ({
+  page,
+}) => {
+  const { sockets, requests } = await fixture(page);
+  await show(page);
+  await expect.poll(() => sockets.length).toBe(1);
+  await expect(page.getByTestId('market-price')).toHaveText('4,001.00');
+  await page.evaluate(() => {
+    document.startViewTransition = undefined as unknown as Document['startViewTransition'];
+  });
+  const canvas = page.locator('.market-canvas canvas').first();
+  const before = await canvas.evaluate((node) => (node as HTMLCanvasElement).toDataURL());
+  const count = requests.length;
+  await page.getByRole('button', { name: 'Turn the lights on' }).click();
+  await expect(page.locator('.site-shell')).toHaveAttribute('data-lights', 'on');
+  await expect
+    .poll(() => canvas.evaluate((node) => (node as HTMLCanvasElement).toDataURL()))
+    .not.toBe(before);
+  expect(requests).toHaveLength(count);
+  expect(sockets).toHaveLength(1);
+  expect(sockets[0].closed).toBe(false);
+  await page.getByRole('combobox', { name: 'Market instrument' }).click();
+  const popup = page.locator('[data-slot="select-content"]');
+  await expect(popup).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(page.getByRole('option', { name: 'PAX Gold / USDT', exact: true })).toBeFocused();
+  await page.keyboard.press('e');
+  await expect(page.getByRole('option', { name: 'Ethereum / USDT', exact: true })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('combobox')).toContainText('Ethereum');
+  await expect(page.getByRole('combobox')).toBeFocused();
+  await page.getByRole('combobox').click();
+  await expect(page.getByRole('option', { name: 'Ethereum / USDT', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(popup).toBeHidden();
+  await expect(page.getByRole('combobox')).toBeFocused();
+  await page.getByRole('button', { name: 'Normal', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Universe — Work in progress' })).toBeFocused();
+  await expect(page.getByRole('tooltip')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
 });
 
 test('silent or invalid streams retain the last price and reconnect with a bounded retry count', async ({
@@ -267,7 +348,7 @@ test('Portuguese, lighting, gentle effects, and phone controls remain accessible
   expect(results.violations).toEqual([]);
   await page.setViewportSize({ width: 320, height: 740 });
   await page.locator('.market-card').scrollIntoViewIfNeeded();
-  await page.getByLabel('Ativo de mercado', { exact: true }).selectOption('ETHUSDT');
+  await chooseInstrument(page, 'ETHUSDT');
   await expect(page.getByTestId('market-price')).toHaveText('2.501,00');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
@@ -312,7 +393,7 @@ test('bento animations move by default and both profile and market sources work 
   await expect
     .poll(() => packet.evaluate((node) => getComputedStyle(node).strokeDashoffset))
     .not.toBe(offset);
-  await page.locator('.service-feed').focus();
+  await page.locator('.service-feed').getByRole('button').focus();
   await expect(track).toHaveCSS('animation-play-state', 'paused');
   const context = await browser.newContext({ javaScriptEnabled: false, reducedMotion: 'reduce' });
   try {

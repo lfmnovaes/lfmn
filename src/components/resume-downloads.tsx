@@ -1,7 +1,9 @@
 'use client';
 
-import { Download } from 'lucide-react';
 import { type MouseEvent, useRef, useState } from 'react';
+
+import { Download } from 'lucide-react';
+
 import { CountryFlag } from './country-flag';
 import { buttonVariants } from './ui/button';
 

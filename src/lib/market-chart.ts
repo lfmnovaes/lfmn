@@ -5,6 +5,7 @@ import {
   HistogramSeries,
   type UTCTimestamp,
 } from 'lightweight-charts';
+
 import type { Candle } from '@/lib/market-data';
 
 export function mountMarketChart(container: HTMLElement) {
@@ -54,8 +55,11 @@ export function mountMarketChart(container: HTMLElement) {
     };
   }
   palette();
+  // The palette follows the same DOM attribute as the inherited CSS tokens.
+  const theme = container.closest('[data-lights]');
+  const observer = new MutationObserver(palette);
+  if (theme) observer.observe(theme, { attributes: true, attributeFilter: ['data-lights'] });
   return {
-    palette,
     setData(data: Candle[]) {
       prices.setData(data.map((item) => ({ ...item, time: item.time as UTCTimestamp })));
       volumes.setData(data.map(volume));
@@ -65,6 +69,9 @@ export function mountMarketChart(container: HTMLElement) {
       prices.update({ ...item, time: item.time as UTCTimestamp });
       volumes.update(volume(item));
     },
-    remove: () => chart.remove(),
+    remove() {
+      observer.disconnect();
+      chart.remove();
+    },
   };
 }

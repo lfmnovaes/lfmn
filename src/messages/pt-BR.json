@@ -183,5 +183,11 @@
     "body": "Tem algo em mente? Vou gostar de saber.",
     "email": "Diga olá",
     "footer": "Feito com cuidado em um pequeno planeta azul."
+  },
+  "motion": {
+    "previous": "Tecnologias anteriores",
+    "next": "Próximas tecnologias",
+    "pause": "Pausar animação",
+    "resume": "Retomar animação"
   }
 }

@@ -10,17 +10,23 @@ import {
   ShieldCheck,
   Smartphone,
 } from 'lucide-react';
+
+import type { Locale } from '@/i18n/routing';
 import type messages from '@/messages/en.json';
+
 import { MarketPanel } from './market-panel';
+import { ServiceFeed } from './service-feed';
 
 export function EngineeringBento({
   copy,
   market,
   locale,
+  controls,
 }: {
   copy: typeof messages.engineering;
   market: typeof messages.market;
-  locale: string;
+  locale: Locale;
+  controls: typeof messages.motion;
 }) {
   const icons = [Monitor, Server, ShieldCheck, Smartphone, Gauge, Activity];
   return (
@@ -33,7 +39,7 @@ export function EngineeringBento({
         <h2 id="engineering-title">
           {copy.title}
           <br />
-          <span>{copy.accent}</span>
+          <span className="section-accent">{copy.accent}</span>
         </h2>
         <p>{copy.intro}</p>
       </div>
@@ -42,12 +48,7 @@ export function EngineeringBento({
           <Code2 className="bento-icon" size={24} aria-hidden="true" />
           <h3 id="service-title">{copy.servicesTitle}</h3>
           <p className="bento-description">{copy.servicesIntro}</p>
-          <section
-            className="service-feed"
-            aria-label={copy.servicesTitle}
-            // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard focus pauses the moving service list.
-            tabIndex={0}
-          >
+          <ServiceFeed label={copy.servicesTitle} controls={controls}>
             <div className="service-track">
               {[false, true].map((duplicate) => (
                 <ul
@@ -69,7 +70,7 @@ export function EngineeringBento({
                         </span>
                         <div>
                           <strong>{service.title}</strong>
-                          <span>{service.detail}</span>
+                          <span className="service-detail">{service.detail}</span>
                         </div>
                       </li>
                     );
@@ -77,7 +78,7 @@ export function EngineeringBento({
                 </ul>
               ))}
             </div>
-          </section>
+          </ServiceFeed>
         </article>
         <article className="bento-card flow-card flex flex-col" aria-labelledby="flow-title">
           <Braces className="bento-icon" size={24} aria-hidden="true" />
@@ -97,7 +98,7 @@ export function EngineeringBento({
             </svg>
             {[Monitor, Server, Database].map((Icon, index) => (
               <div className="flow-node relative text-center" key={copy.nodes[index]}>
-                <span>
+                <span className="flow-icon">
                   <Icon size={23} aria-hidden="true" />
                 </span>
                 <strong>{copy.nodes[index]}</strong>

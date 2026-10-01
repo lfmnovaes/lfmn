@@ -6,6 +6,13 @@ export const MARKET_SYMBOLS = {
 export const MARKET_INTERVALS = { '1m': 60, '5m': 300, '1h': 3600 } as const;
 export type MarketSymbol = keyof typeof MARKET_SYMBOLS;
 export type MarketInterval = keyof typeof MARKET_INTERVALS;
+export type MarketRequest = { symbol: MarketSymbol; interval: MarketInterval };
+export const MARKET_OPTIONS = Object.entries(MARKET_SYMBOLS).map(([value, label]) => ({
+  value: value as MarketSymbol,
+  label: `${label} / USDT`,
+}));
+export const MARKET_INTERVAL_OPTIONS = Object.keys(MARKET_INTERVALS) as MarketInterval[];
+
 export type Candle = {
   time: number;
   open: number;

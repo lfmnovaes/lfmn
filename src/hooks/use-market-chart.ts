@@ -1,14 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+
 import type { mountMarketChart } from '@/lib/market-chart';
 import {
   type Candle,
   MARKET_INTERVALS,
   MARKET_REST,
   MARKET_SOCKET,
-  type MarketInterval,
-  type MarketSymbol,
+  type MarketRequest,
   parseHistory,
   parseMarketEvent,
 } from '@/lib/market-data';
@@ -16,15 +16,8 @@ import {
 type Status = 'idle' | 'loading' | 'connecting' | 'live' | 'stale' | 'offline' | 'paused' | 'error';
 type Snapshot = { key: string; candle: Candle; eventTime: number; receivedAt: number };
 
-export function useMarketChart({
-  symbol,
-  interval,
-  lights,
-}: {
-  symbol: MarketSymbol;
-  interval: MarketInterval;
-  lights: boolean;
-}) {
+export function useMarketChart(request: MarketRequest) {
+  const { symbol, interval } = request;
   const panel = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const chart = useRef<ReturnType<typeof mountMarketChart> | null>(null);
@@ -34,7 +27,6 @@ export function useMarketChart({
   const [environment, setEnvironment] = useState({ visible: true, online: true });
   const [status, setStatus] = useState<Status>('idle');
   const [loading, setLoading] = useState(false);
-  const [retry, setRetry] = useState(0);
   const key = `${symbol}:${interval}`;
   const current = snapshot?.key === key ? snapshot : null;
 
@@ -57,8 +49,6 @@ export function useMarketChart({
     };
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: The canvas must repaint when inherited CSS theme colors change.
-  useEffect(() => chart.current?.palette(), [lights]);
   useEffect(
     () => () => {
       chart.current?.remove();
@@ -67,8 +57,9 @@ export function useMarketChart({
     [],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Explicit retry restarts the entire network cycle and cancels previous work.
   useEffect(() => {
+    const { symbol, interval } = request;
+    const key = `${symbol}:${interval}`;
     if (last.current?.key !== key) chart.current?.setData([]);
     if (!environment.online || !near || !environment.visible) {
       setLoading(false);
@@ -201,7 +192,7 @@ export function useMarketChart({
       clearTimeout(deadline);
       closeSocket();
     };
-  }, [key, symbol, interval, near, environment.online, environment.visible, retry]);
+  }, [request, near, environment.online, environment.visible]);
 
-  return { panel, canvas, current, status, loading, retry: () => setRetry((value) => value + 1) };
+  return { panel, canvas, current, status, loading };
 }
