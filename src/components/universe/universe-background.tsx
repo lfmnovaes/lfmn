@@ -1,33 +1,47 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { useFrame, useThree } from '@react-three/fiber';
-import { AdditiveBlending, BackSide, Color, Euler, type Texture, Vector3 } from 'three';
+import {
+  AdditiveBlending,
+  BackSide,
+  Color,
+  type Group,
+  type ShaderMaterial,
+  type Texture,
+  Vector3,
+} from 'three';
 
 // ExperienceOrbit's galaxy layers; point shaders adapt Drei's MIT Stars/Sparkles.
 // Source revisions and license are recorded in public/textures/universe/CREDITS.md.
 const vertex = `
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
   uniform float time;
   uniform float pixelRatio;
   attribute float size;
   attribute float phase;
-  attribute float drift;
+  attribute float frequency;
   varying vec3 vColor;
   varying float vOpacity;
   void main() {
-    vec3 p = position + drift * vec3(sin(time * 0.15 + phase), cos(time * 0.12 + phase), 0.0);
-    vec4 viewPosition = modelViewMatrix * vec4(p, 1.0);
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * viewPosition;
-    gl_PointSize = clamp(size * pixelRatio * 300.0 / -viewPosition.z, 1.0, 24.0);
+    #include <logdepthbuf_vertex>
+    gl_PointSize = max(1.0, size * pixelRatio);
     vColor = color;
-    vOpacity = 0.65 + 0.35 * sin(time * 0.35 + phase);
+    float pulse = 0.5 + 0.5 * sin(time * frequency + phase);
+    float shimmer = 0.75 + 0.25 * sin(time * frequency * 2.37 + phase * 0.71);
+    vOpacity = (0.12 + 0.88 * pulse) * shimmer;
   }
 `;
 const fragment = `
+  #include <logdepthbuf_pars_fragment>
   varying vec3 vColor;
   varying float vOpacity;
   void main() {
+    #include <logdepthbuf_fragment>
     float radius = length(gl_PointCoord - 0.5);
-    float glow = max(0.0, 0.05 / max(radius, 0.02) - 0.1);
+    float glow = exp(-radius * radius * 24.0) * (1.0 - smoothstep(0.35, 0.5, radius));
     gl_FragColor = vec4(vColor, glow * vOpacity);
     #include <colorspace_fragment>
   }
@@ -43,57 +57,47 @@ export function UniverseBackground({
   reduced: boolean;
 }) {
   const { viewport } = useThree();
+  const backdrop = useRef<Group>(null);
+  const material = useRef<ShaderMaterial>(null);
   const uniforms = useMemo(() => ({ time: { value: 0 }, pixelRatio: { value: 1 } }), []);
   const attributes = useMemo(() => {
-    const stars = small ? 1200 : 3000;
-    const particles = small ? 140 : 350;
-    const count = stars + particles;
+    const count = small ? 1200 : 3000;
     const position = new Float32Array(count * 3);
     const color = new Float32Array(count * 3);
     const size = new Float32Array(count);
     const phase = new Float32Array(count);
-    const drift = new Float32Array(count);
+    const frequency = new Float32Array(count);
     const point = new Vector3();
     const tint = new Color();
-    const tilt = new Euler(Math.PI / 3, 0, Math.PI / 4);
     for (let index = 0; index < count; index++) {
-      const variation = (Math.sin(index * 127.1 + 5.2) + 1) / 2;
-      const longitude = index * 2.399963229728653;
-      if (index < stars) {
-        const height = 1 - (2 * (index + 0.5)) / stars;
-        const spread = Math.sqrt(1 - height * height);
-        point.set(spread * Math.cos(longitude), height, spread * Math.sin(longitude));
-        point.multiplyScalar(700 + variation * 400);
-        tint.setHSL(variation, 0.15, 0.8);
-        size[index] = 4 + variation * 6;
-      } else {
-        const progress = (index - stars) / particles;
-        // Warm core, pink disc, cool outer arms, at the reference's compressed scale.
-        const core = progress < 1 / 7;
-        const disc = progress < 5 / 7;
-        point.set(
-          Math.sin(longitude) * (core ? 100 : disc ? 800 : 1200),
-          Math.sin(index * 17.3) * (core ? 50 : 25),
-          Math.cos(longitude) * (core ? 50 : disc ? 400 : 600),
-        );
-        point.multiplyScalar(0.2 + variation * 0.8).applyEuler(tilt);
-        tint.set(core ? '#fff4d6' : disc ? '#ffe0fb' : '#ccf0dd');
-        tint.multiplyScalar(core ? 0.65 : 0.4);
-        size[index] = core ? 5 : disc ? 8 : 10;
-        drift[index] = disc && !core ? 0.5 : 0;
-      }
+      // Uniform random directions avoid visible spiral/lattice patterns.
+      const longitude = Math.random() * Math.PI * 2;
+      const height = Math.random() * 2 - 1;
+      const spread = Math.sqrt(1 - height * height);
+      point.set(spread * Math.cos(longitude), height, spread * Math.sin(longitude));
+      point.multiplyScalar(1800);
+      const temperature = Math.random();
+      tint.set(temperature < 0.2 ? '#ffe4c4' : temperature > 0.8 ? '#cadbff' : '#f5f3ee');
+      tint.multiplyScalar(0.45 + Math.random() * 0.55);
+      // Many faint pinpoints and a few bright stars, each with its own twinkle.
+      size[index] = 0.8 + Math.random() ** 6 * 4;
       position.set(point.toArray(), index * 3);
       color.set(tint.toArray(), index * 3);
-      phase[index] = longitude;
+      phase[index] = Math.random() * Math.PI * 2;
+      frequency[index] = 0.8 + Math.random() * 2.4;
     }
-    return { position, color, size, phase, drift };
+    return { position, color, size, phase, frequency };
   }, [small]);
-  useFrame((_, delta) => {
-    if (!reduced) uniforms.time.value += Math.min(delta, 0.1);
-    uniforms.pixelRatio.value = viewport.dpr;
+  useFrame(({ camera }, delta) => {
+    // The sky is distant scenery, including when visiting true-scale outer planets.
+    backdrop.current?.position.copy(camera.position);
+    if (material.current) {
+      if (!reduced) material.current.uniforms.time.value += Math.min(delta, 0.1);
+      material.current.uniforms.pixelRatio.value = viewport.dpr;
+    }
   });
   return (
-    <>
+    <group ref={backdrop}>
       {galaxy && (
         <mesh rotation={[Math.PI / 3, 0, Math.PI / 4]}>
           <sphereGeometry args={[1200, 32, 16]} />
@@ -102,7 +106,7 @@ export function UniverseBackground({
             color="#a29dba"
             side={BackSide}
             transparent
-            opacity={0.4}
+            opacity={0.2}
             depthWrite={false}
             toneMapped={false}
           />
@@ -114,9 +118,10 @@ export function UniverseBackground({
           <bufferAttribute attach="attributes-color" args={[attributes.color, 3]} />
           <bufferAttribute attach="attributes-size" args={[attributes.size, 1]} />
           <bufferAttribute attach="attributes-phase" args={[attributes.phase, 1]} />
-          <bufferAttribute attach="attributes-drift" args={[attributes.drift, 1]} />
+          <bufferAttribute attach="attributes-frequency" args={[attributes.frequency, 1]} />
         </bufferGeometry>
         <shaderMaterial
+          ref={material}
           uniforms={uniforms}
           vertexShader={vertex}
           fragmentShader={fragment}
@@ -127,6 +132,6 @@ export function UniverseBackground({
           blending={AdditiveBlending}
         />
       </points>
-    </>
+    </group>
   );
 }

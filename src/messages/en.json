@@ -190,7 +190,11 @@
     "resume": "Resume animation"
   },
   "universe": {
-    "title": "Universe",
+    "scaleToggle": "Realistic scale",
+    "realisticView": "Switch to realistic sizes and distances",
+    "artisticView": "Switch to the artistic view",
+    "realistic": "Realistic sizes and distances; fixed approximate orbits and illustrative positions. Use the body list to visit distant planets.",
+    "timeScale": "Simulated time per second while playing:",
     "skipToFacts": "Skip to planet facts",
     "scene": "Illustrative solar system",
     "loading": "Loading Universe scene",
@@ -223,11 +227,9 @@
     "position": "Position in the solar system navigation",
     "previous": "Previous body",
     "next": "Next body",
-    "rotateLeft": "Rotate camera left",
-    "rotateRight": "Rotate camera right",
     "rotateUp": "Rotate camera up",
     "rotateDown": "Rotate camera down",
-    "gestures": "Scroll to travel · Drag to orbit · Pinch to zoom",
+    "gestures": "Scroll to travel · Ctrl + scroll to zoom · Drag or use arrow keys to orbit · Pinch to zoom",
     "content": {
       "sun": {
         "kind": "Star",
@@ -421,6 +423,15 @@
       }
     },
     "textureCredits": "Textures:",
-    "textureFallback": "Some textures could not load; simplified illustrations and all facts remain available."
+    "textureFallback": "Some textures could not load; simplified illustrations and all facts remain available.",
+    "speeds": {
+      "hour": "1 hour / s",
+      "sixHours": "6 hours / s",
+      "twelveHours": "12 hours / s",
+      "week": "7 days / s",
+      "month": "30 days / s"
+    },
+    "enableMotion": "Enable animations",
+    "reducedMotion": "Your browser requests reduced motion. Enable animations or choose a speed to turn on orbits and camera travel."
   }
 }

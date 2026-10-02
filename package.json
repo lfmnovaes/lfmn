@@ -11,7 +11,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "playwright test",
     "test:dev": "playwright test --config playwright.dev.config.ts",
-    "format": "biome check --write ."
+    "format": "biome check --write .",
+    "postinstall": "patch-package --error-on-fail"
   },
   "dependencies": {
     "@base-ui/react": "1.8.0",
@@ -29,17 +30,18 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "tailwind-merge": "3.7.0",
-    "three": "0.182.0"
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
     "@biomejs/biome": "2.5.15",
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
-    "@types/node": "26.6.3",
+    "@types/node": "26.6.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@types/three": "0.182.0",
+    "@types/three": "0.186.0",
+    "patch-package": "8.0.1",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2"
   },

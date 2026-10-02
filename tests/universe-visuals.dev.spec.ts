@@ -32,8 +32,7 @@ test('desktop bloom renders real passes and releases its targets on a smaller vi
   });
   const errors: string[] = [];
   page.on('console', (message) => {
-    if (message.type() === 'error' || message.text().includes('THREE.Clock'))
-      errors.push(message.text());
+    if (message.type() === 'error') errors.push(message.text());
   });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/universe');

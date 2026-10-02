@@ -1,6 +1,6 @@
 'use client';
 
-import { type Ref, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { type Ref, type RefObject, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 
 import { useFrame, useThree } from '@react-three/fiber';
 import {
@@ -20,21 +20,25 @@ import {
   type Texture,
 } from 'three';
 
-import type { PLANETS, PlanetId } from './universe-data';
+import type { PlanetId, ScenePlanet, UniverseScale } from './universe-data';
 
 // Adapted from Tan Phan's ExperienceOrbit planet-components and sun-shader, revision 0d488de.
 const sunVertex = `
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
   varying vec2 vUv;
   varying vec3 vNormal;
   varying vec3 vPosition;
   void main() {
     vUv = uv;
     vNormal = normalize(normalMatrix * normal);
-    vPosition = position;
+    vPosition = normalize(position);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    #include <logdepthbuf_vertex>
   }
 `;
 const sunFragment = `
+  #include <logdepthbuf_pars_fragment>
   varying vec2 vUv;
   varying vec3 vNormal;
   varying vec3 vPosition;
@@ -44,12 +48,13 @@ const sunFragment = `
     return sin(p.x * 10.0 + uTime) * sin(p.y * 10.0 + uTime * 0.7) * sin(p.z * 10.0 + uTime * 0.5);
   }
   void main() {
-    float n = noise(vPosition * 0.5);
+    #include <logdepthbuf_fragment>
+    float n = noise(vPosition * 4.0);
     vec3 noiseColor = mix(vec3(1.0, 0.9, 0.2), vec3(1.0, 0.4, 0.0), n * 0.5 + 0.5);
-    vec3 color = texture2D(sunTexture, vUv).rgb + noiseColor * 0.8;
+    vec3 color = texture2D(sunTexture, vUv).rgb + noiseColor * 0.65;
     float fresnel = pow(1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
-    color += vec3(1.0, 0.6, 0.2) * fresnel * 2.0;
-    gl_FragColor = vec4(color * 1.5, 1.0);
+    color += vec3(1.0, 0.6, 0.2) * fresnel * 1.4;
+    gl_FragColor = vec4(color * 1.2, 1.0);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
   }
@@ -70,7 +75,7 @@ function SunMaterial({
     [texture],
   );
   useFrame((_, delta) => {
-    if (!reduced && material.current) uniforms.uTime.value += Math.min(delta, 0.1);
+    if (!reduced && material.current) material.current.uniforms.uTime.value += Math.min(delta, 0.1);
   });
   return (
     <shaderMaterial
@@ -105,7 +110,7 @@ function SunGlow({ size }: { size: number }) {
       <spriteMaterial
         map={texture}
         color="#ffad33"
-        opacity={0.6}
+        opacity={0.4}
         transparent
         depthWrite={false}
         blending={AdditiveBlending}
@@ -115,6 +120,8 @@ function SunGlow({ size }: { size: number }) {
 }
 
 const atmosphereVertex = `
+  #include <common>
+  #include <logdepthbuf_pars_vertex>
   varying vec3 vNormal;
   varying vec3 vView;
   void main() {
@@ -122,13 +129,16 @@ const atmosphereVertex = `
     vNormal = normalize(normalMatrix * normal);
     vView = -viewPosition.xyz;
     gl_Position = projectionMatrix * viewPosition;
+    #include <logdepthbuf_vertex>
   }
 `;
 const atmosphereFragment = `
+  #include <logdepthbuf_pars_fragment>
   uniform vec3 color;
   varying vec3 vNormal;
   varying vec3 vView;
   void main() {
+    #include <logdepthbuf_fragment>
     float rim = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), 3.0);
     gl_FragColor = vec4(color, rim * 0.35);
     #include <colorspace_fragment>
@@ -154,10 +164,10 @@ function Atmosphere({ size, color }: { size: number; color: string }) {
   );
 }
 
-function SaturnRings({ size }: { size: number }) {
+function SaturnRings({ size, scale }: { size: number; scale: UniverseScale }) {
   const { geometry, texture } = useMemo(() => {
-    const inner = size * 1.47;
-    const outer = size * 3.33;
+    const inner = size * (scale === 'realistic' ? 1.239 : 1.47);
+    const outer = size * (scale === 'realistic' ? 2.27 : 3.33);
     const geometry = new RingGeometry(inner, outer, 128);
     const positions = geometry.attributes.position;
     for (let index = 0; index < positions.count; index++) {
@@ -168,7 +178,8 @@ function SaturnRings({ size }: { size: number }) {
     for (let index = 0; index < 256; index++) {
       const radius = index / 255;
       const band = 0.68 + Math.sin(index * 1.7) * 0.1 + Math.sin(index * 0.27) * 0.12;
-      const gap = radius > 0.52 && radius < 0.57;
+      const gap =
+        scale === 'realistic' ? radius > 0.69 && radius < 0.765 : radius > 0.52 && radius < 0.57;
       data.set([223 * band, 211 * band, 180 * band, gap ? 12 : 190 * band], index * 4);
     }
     const texture = new DataTexture(data, 256, 1);
@@ -177,7 +188,7 @@ function SaturnRings({ size }: { size: number }) {
     texture.magFilter = LinearFilter;
     texture.needsUpdate = true;
     return { geometry, texture };
-  }, [size]);
+  }, [size, scale]);
   useEffect(
     () => () => {
       geometry.dispose();
@@ -204,14 +215,18 @@ export function PlanetBody({
   texture,
   clouds,
   reduced,
+  hours,
+  scale,
   postprocessed,
   onSelect,
   ref,
 }: {
-  planet: (typeof PLANETS)[number];
+  planet: ScenePlanet;
   texture?: Texture;
   clouds?: Texture;
   reduced: boolean;
+  hours: RefObject<number>;
+  scale: UniverseScale;
   postprocessed: boolean;
   onSelect: (id: PlanetId) => void;
   ref: Ref<Group>;
@@ -223,12 +238,12 @@ export function PlanetBody({
   const { gl, invalidate } = useThree();
   useFrame((_, delta) => {
     const elapsed = Math.min(delta, 0.1);
-    if (!reduced) {
-      if (body.current) body.current.rotation.y += elapsed * planet.spin;
-      if (cloudLayer.current) cloudLayer.current.rotation.y += elapsed * planet.spin * 1.08;
-    }
+    // Obliquity already reverses Venus/Uranus/Pluto's axis: do not reverse it twice.
+    const spin = (hours.current * Math.PI * 2) / Math.abs(planet.rotationHours);
+    if (body.current) body.current.rotation.y = spin % (Math.PI * 2);
+    if (cloudLayer.current) cloudLayer.current.rotation.y = (spin * 1.08) % (Math.PI * 2);
     if (visual.current) {
-      const target = !reduced && hovered.current ? 1.05 : 1;
+      const target = scale === 'artistic' && !reduced && hovered.current ? 1.05 : 1;
       const weight = reduced ? 1 : 1 - Math.exp(-elapsed * 12);
       visual.current.scale.setScalar(
         visual.current.scale.x + (target - visual.current.scale.x) * weight,
@@ -282,7 +297,7 @@ export function PlanetBody({
             <meshStandardMaterial map={clouds} transparent opacity={0.5} depthWrite={false} />
           </mesh>
         )}
-        {planet.id === 'saturn' && <SaturnRings size={planet.size} />}
+        {planet.id === 'saturn' && <SaturnRings size={planet.size} scale={scale} />}
         {planet.id === 'sun' && !postprocessed && <SunGlow size={planet.size} />}
         {planet.id !== 'sun' && planet.id !== 'mercury' && planet.id !== 'pluto' && (
           <Atmosphere size={planet.size} color={planet.color} />

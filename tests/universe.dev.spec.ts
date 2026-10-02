@@ -15,13 +15,11 @@ for (const [locale, copy] of [
     page,
   }) => {
     const errors: string[] = [];
+    const clockWarnings: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('console', (message) => {
-      if (
-        message.type() === 'error' ||
-        (message.type() === 'warning' && message.text().includes('THREE.Clock'))
-      )
-        errors.push(message.text());
+      if (message.type() === 'error') errors.push(message.text());
+      if (message.text().includes('THREE.Clock')) clockWarnings.push(message.text());
     });
     await page.goto(path);
     await expect(page.locator('html')).toHaveAttribute('lang', locale);
@@ -75,6 +73,7 @@ for (const [locale, copy] of [
       .analyze();
     expect(results.violations).toEqual([]);
     expect(errors).toEqual([]);
+    expect(clockWarnings).toEqual([]);
     await page.getByRole('link', { name: copy.nav.normal, exact: true }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Luis');
     await expect(page.locator('a[download]')).toHaveCount(2);
@@ -213,7 +212,32 @@ test('canvas pointer selection has the same DOM result as keyboard selection', a
       }
     }
     if (!count) throw new Error('Sun is not visible');
-    return { x: x / count / image.width, y: y / count / image.height };
+    const center = { x: x / count, y: y / count };
+    const scene = document.querySelector('canvas');
+    if (!scene) throw new Error('Missing scene');
+    const bounds = scene.getBoundingClientRect();
+    let nearest: { x: number; y: number } | undefined;
+    let closest = Infinity;
+    // The full-screen canvas sits behind the HUD. Click a visible Sun pixel, not covered text.
+    for (let index = 0; index < pixels.length; index += 64) {
+      const [red, green, blue] = pixels.slice(index, index + 3);
+      if (red <= 180 || green <= red * 0.65 || blue >= red * 0.62) continue;
+      const px = (index / 4) % image.width;
+      const py = Math.floor(index / 4 / image.width);
+      const distance = Math.hypot(px - center.x, py - center.y);
+      if (
+        distance < closest &&
+        document.elementFromPoint(
+          bounds.x + (px / image.width) * bounds.width,
+          bounds.y + (py / image.height) * bounds.height,
+        ) === scene
+      ) {
+        nearest = { x: px / image.width, y: py / image.height };
+        closest = distance;
+      }
+    }
+    if (!nearest) throw new Error('No unobstructed Sun pixel');
+    return nearest;
   }, screenshot.toString('base64'));
   const bounds = await canvas.boundingBox();
   expect(bounds).not.toBeNull();

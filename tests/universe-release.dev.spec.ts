@@ -29,6 +29,9 @@ test('maps arriving after shader compilation display Earth and Neptune in their 
   for (const body of ['Earth', 'Neptune']) {
     await page.getByRole('button', { name: body, exact: true }).click();
     await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', body.toLowerCase());
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
     const screenshot = await page.locator('canvas').screenshot();
     const colors = await page.evaluate(async (data) => {
       const image = new Image();

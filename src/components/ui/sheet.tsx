@@ -17,11 +17,11 @@ export function SheetContent({ className, children, ...props }: Primitive.Popup.
   const container = usePortalContainer();
   return (
     <Primitive.Portal container={container}>
-      <Primitive.Backdrop className="fixed inset-0 z-50 bg-black/50 transition-opacity duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none" />
+      <Primitive.Backdrop className="fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 motion-reduce:transition-none" />
       <Primitive.Popup
         data-slot="sheet-content"
         className={cn(
-          'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col gap-6 overflow-y-auto overscroll-contain border-l border-border bg-background p-6 text-foreground shadow-xl transition-transform duration-200 data-ending-style:translate-x-full data-starting-style:translate-x-full motion-reduce:transition-none',
+          'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col gap-6 overflow-y-auto overscroll-contain border-l border-border bg-background p-6 text-foreground shadow-xl transition-transform duration-300 ease-in-out data-[ending-style]:translate-x-full data-[starting-style]:translate-x-full motion-reduce:transition-none',
           className,
         )}
         {...props}

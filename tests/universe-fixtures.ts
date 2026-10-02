@@ -1,4 +1,86 @@
 // Browser-side probes only; they do not add instrumentation to the application.
+export function readUniverseScene() {
+  // Development-only inspection of CanvasImpl's existing renderer state.
+  const canvas = document.querySelector('canvas');
+  if (!canvas) throw new Error('Missing scene');
+  const key = Object.keys(canvas).find((name) => name.startsWith('__reactFiber'));
+  let fiber = key && Reflect.get(canvas, key);
+  while (fiber && fiber.type?.name !== 'CanvasImpl') fiber = fiber.return;
+  let hook = fiber?.memoizedState;
+  while (hook) {
+    const state = hook.memoizedState?.current;
+    if (state?.scene && state?.camera) {
+      const bodies: { radius: number; position: number[]; spin: number; scale: number }[] = [];
+      const orbits: { origin: number[]; center: number[] }[] = [];
+      let sunTime = 0;
+      const sky = {
+        count: 0,
+        time: 0,
+        positions: [] as number[],
+        phases: [] as number[],
+        frequencies: [] as number[],
+      };
+      state.scene.traverse(
+        (mesh: {
+          type: string;
+          position: { toArray: () => number[] };
+          material?: {
+            uniforms?: {
+              time?: { value: number };
+              uTime?: { value: number };
+              pixelRatio?: unknown;
+            };
+          };
+          geometry?: {
+            type: string;
+            parameters: { radius: number };
+            attributes: Record<string, { array: Float32Array; count: number }>;
+          };
+          rotation: { y: number };
+          parent: {
+            children: unknown[];
+            scale: { x: number };
+            parent: { position: { toArray: () => number[] } };
+          };
+        }) => {
+          if (mesh.type === 'LineLoop' && mesh.geometry) {
+            const positions = mesh.geometry.attributes.position.array;
+            const middle = positions.length / 2;
+            orbits.push({
+              origin: mesh.position.toArray(),
+              center: Array.from(positions.slice(middle, middle + 3)),
+            });
+          }
+          if (mesh.material?.uniforms?.pixelRatio && mesh.geometry) {
+            Object.assign(sky, {
+              count: mesh.geometry.attributes.position.count,
+              time: mesh.material.uniforms.time?.value ?? 0,
+              positions: Array.from(mesh.geometry.attributes.position.array.slice(0, 90)),
+              phases: Array.from(mesh.geometry.attributes.phase.array.slice(0, 30)),
+              frequencies: Array.from(mesh.geometry.attributes.frequency.array.slice(0, 30)),
+            });
+          }
+          if (mesh.material?.uniforms?.uTime) sunTime = mesh.material.uniforms.uTime.value;
+          if (
+            mesh.geometry?.type === 'SphereGeometry' &&
+            mesh.geometry.parameters.radius < 100 &&
+            mesh.parent.children[0] === mesh
+          )
+            bodies.push({
+              radius: mesh.geometry.parameters.radius,
+              position: mesh.parent.parent.position.toArray(),
+              spin: mesh.rotation.y,
+              scale: mesh.parent.scale.x,
+            });
+        },
+      );
+      return { camera: state.camera.position.toArray() as number[], bodies, orbits, sky, sunTime };
+    }
+    hook = hook.next;
+  }
+  throw new Error('Missing native renderer state');
+}
+
 export function trackUniverseFrames() {
   let frames = 0;
   const clear = WebGL2RenderingContext.prototype.clear;

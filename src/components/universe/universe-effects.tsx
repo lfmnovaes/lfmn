@@ -19,7 +19,7 @@ export function UniverseEffects() {
     const pipeline = new EffectComposer(gl);
     pipeline.setPixelRatio(1);
     pipeline.addPass(new RenderPass(scene, camera));
-    pipeline.addPass(new UnrealBloomPass(new Vector2(), 1.2, 0.5, 1.1));
+    pipeline.addPass(new UnrealBloomPass(new Vector2(), 0.8, 0.5, 1.1));
     const vignette = new ShaderPass(VignetteShader);
     vignette.uniforms.offset.value = 0.15;
     vignette.uniforms.darkness.value = 0.3;

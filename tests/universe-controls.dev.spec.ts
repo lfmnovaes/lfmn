@@ -52,7 +52,7 @@ test('scene wheel travel is bounded and drag capture/cancellation does not selec
         element.dispatchEvent(event);
         return event.defaultPrevented;
       }, modifier),
-    ).toBe(false);
+    ).toBe(modifier === 'ctrlKey');
   }
   await page.getByRole('link', { name: 'GitHub', exact: true }).hover();
   await page.mouse.wheel(0, 260);
@@ -69,7 +69,9 @@ test('scene wheel travel is bounded and drag capture/cancellation does not selec
   await page.mouse.down();
   await page.mouse.move(point.x + 100, point.y + 35, { steps: 10 });
   // Leave the canvas while captured, then release: no stuck drag or accidental selection.
-  await page.mouse.move(point.x + 110, dragBounds.y - 10);
+  const header = await page.getByRole('link', { name: 'GitHub', exact: true }).boundingBox();
+  if (!header) throw new Error('Missing header control');
+  await page.mouse.move(header.x + header.width / 2, header.y + header.height / 2);
   await page.mouse.up();
   await settle(page);
   expect(await canvas.screenshot()).not.toEqual(before);
@@ -107,7 +109,8 @@ test('scene wheel travel is bounded and drag capture/cancellation does not selec
   await settle(page);
   expect(await canvas.screenshot()).toEqual(cancelled);
   await page.mouse.up();
-  await page.getByRole('button', { name: copy.rotateRight, exact: true }).click();
+  await page.getByRole('button', { name: copy.zoomIn, exact: true }).focus();
+  await page.keyboard.press('ArrowRight');
   await settle(page);
   expect(await canvas.screenshot()).not.toEqual(cancelled);
   expect(errors).toEqual([]);

@@ -1,0 +1,159 @@
+diff --git a/node_modules/@react-three/fiber/dist/events-21d8cd92.cjs.dev.js b/node_modules/@react-three/fiber/dist/events-21d8cd92.cjs.dev.js
+index 9b43bdf..31fe0d3 100644
+--- a/node_modules/@react-three/fiber/dist/events-21d8cd92.cjs.dev.js
++++ b/node_modules/@react-three/fiber/dist/events-21d8cd92.cjs.dev.js
+@@ -1008,6 +1008,39 @@ function createEvents(store) {
+ 
+ const isRenderer = def => !!(def != null && def.render);
+ const context = /* @__PURE__ */React__namespace.createContext(null);
++// Temporary v9 timing bridge: keep the Clock-shaped public API, backed by Three.Timer.
++// Remove this bridge when stable Fiber provides native Timer scheduling.
++function createTimerClock() {
++  const timer = new THREE__namespace.Timer();
++  return {
++    autoStart: true, startTime: 0, oldTime: 0, elapsedTime: 0, running: false,
++    start() {
++      this.startTime = this.oldTime = performance.now();
++      this.elapsedTime = 0;
++      this.running = true;
++      timer.reset();
++    },
++    stop() {
++      this.getElapsedTime();
++      this.running = false;
++      this.autoStart = false;
++    },
++    getElapsedTime() {
++      this.getDelta();
++      return this.elapsedTime;
++    },
++    getDelta() {
++      if (this.autoStart && !this.running) { this.start(); return 0; }
++      if (!this.running) return 0;
++      timer.update();
++      this.oldTime = performance.now();
++      const delta = timer.getDelta();
++      this.elapsedTime += delta;
++      return delta;
++    },
++  };
++}
++
+ const createStore = (invalidate, advance) => {
+   const rootStore = traditional.createWithEqualityFn((set, get) => {
+     const position = new THREE__namespace.Vector3();
+@@ -1076,7 +1109,7 @@ const createStore = (invalidate, advance) => {
+       linear: false,
+       flat: false,
+       controls: null,
+-      clock: new THREE__namespace.Clock(),
++      clock: createTimerClock(),
+       pointer,
+       mouse: pointer,
+       frameloop: 'always',
+diff --git a/node_modules/@react-three/fiber/dist/events-9ce18a08.esm.js b/node_modules/@react-three/fiber/dist/events-9ce18a08.esm.js
+index ea6b4c9..1935072 100644
+--- a/node_modules/@react-three/fiber/dist/events-9ce18a08.esm.js
++++ b/node_modules/@react-three/fiber/dist/events-9ce18a08.esm.js
+@@ -983,6 +983,39 @@ function createEvents(store) {
+ 
+ const isRenderer = def => !!(def != null && def.render);
+ const context = /* @__PURE__ */React.createContext(null);
++// Temporary v9 timing bridge: keep the Clock-shaped public API, backed by Three.Timer.
++// Remove this bridge when stable Fiber provides native Timer scheduling.
++function createTimerClock() {
++  const timer = new THREE.Timer();
++  return {
++    autoStart: true, startTime: 0, oldTime: 0, elapsedTime: 0, running: false,
++    start() {
++      this.startTime = this.oldTime = performance.now();
++      this.elapsedTime = 0;
++      this.running = true;
++      timer.reset();
++    },
++    stop() {
++      this.getElapsedTime();
++      this.running = false;
++      this.autoStart = false;
++    },
++    getElapsedTime() {
++      this.getDelta();
++      return this.elapsedTime;
++    },
++    getDelta() {
++      if (this.autoStart && !this.running) { this.start(); return 0; }
++      if (!this.running) return 0;
++      timer.update();
++      this.oldTime = performance.now();
++      const delta = timer.getDelta();
++      this.elapsedTime += delta;
++      return delta;
++    },
++  };
++}
++
+ const createStore = (invalidate, advance) => {
+   const rootStore = createWithEqualityFn((set, get) => {
+     const position = new THREE.Vector3();
+@@ -1051,7 +1084,7 @@ const createStore = (invalidate, advance) => {
+       linear: false,
+       flat: false,
+       controls: null,
+-      clock: new THREE.Clock(),
++      clock: createTimerClock(),
+       pointer,
+       mouse: pointer,
+       frameloop: 'always',
+diff --git a/node_modules/@react-three/fiber/dist/events-a816cbab.cjs.prod.js b/node_modules/@react-three/fiber/dist/events-a816cbab.cjs.prod.js
+index c26a227..58eeb12 100644
+--- a/node_modules/@react-three/fiber/dist/events-a816cbab.cjs.prod.js
++++ b/node_modules/@react-three/fiber/dist/events-a816cbab.cjs.prod.js
+@@ -1008,6 +1008,39 @@ function createEvents(store) {
+ 
+ const isRenderer = def => !!(def != null && def.render);
+ const context = /* @__PURE__ */React__namespace.createContext(null);
++// Temporary v9 timing bridge: keep the Clock-shaped public API, backed by Three.Timer.
++// Remove this bridge when stable Fiber provides native Timer scheduling.
++function createTimerClock() {
++  const timer = new THREE__namespace.Timer();
++  return {
++    autoStart: true, startTime: 0, oldTime: 0, elapsedTime: 0, running: false,
++    start() {
++      this.startTime = this.oldTime = performance.now();
++      this.elapsedTime = 0;
++      this.running = true;
++      timer.reset();
++    },
++    stop() {
++      this.getElapsedTime();
++      this.running = false;
++      this.autoStart = false;
++    },
++    getElapsedTime() {
++      this.getDelta();
++      return this.elapsedTime;
++    },
++    getDelta() {
++      if (this.autoStart && !this.running) { this.start(); return 0; }
++      if (!this.running) return 0;
++      timer.update();
++      this.oldTime = performance.now();
++      const delta = timer.getDelta();
++      this.elapsedTime += delta;
++      return delta;
++    },
++  };
++}
++
+ const createStore = (invalidate, advance) => {
+   const rootStore = traditional.createWithEqualityFn((set, get) => {
+     const position = new THREE__namespace.Vector3();
+@@ -1076,7 +1109,7 @@ const createStore = (invalidate, advance) => {
+       linear: false,
+       flat: false,
+       controls: null,
+-      clock: new THREE__namespace.Clock(),
++      clock: createTimerClock(),
+       pointer,
+       mouse: pointer,
+       frameloop: 'always',

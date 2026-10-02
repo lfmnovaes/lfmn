@@ -94,10 +94,26 @@ export function useUniverseControls(
       moved = false;
     };
     const wheel = (event: WheelEvent) => {
-      if (event.ctrlKey || event.metaKey || !(event.target instanceof HTMLCanvasElement)) return;
+      if (event.metaKey || !(event.target instanceof HTMLCanvasElement)) return;
       event.preventDefault();
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1;
-      advance(event.deltaY * unit * 0.004);
+      if (event.ctrlKey) adjustZoom(Math.exp(clamp(event.deltaY * unit * 0.002, -1, 1)));
+      else advance(event.deltaY * unit * 0.004);
+    };
+    const key = (event: KeyboardEvent) => {
+      if (
+        !(event.target instanceof HTMLButtonElement) ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      )
+        return;
+      if (event.key === 'ArrowLeft') rotate(-0.25, 0);
+      else if (event.key === 'ArrowRight') rotate(0.25, 0);
+      else if (event.key === 'ArrowUp') rotate(0, -0.25);
+      else if (event.key === 'ArrowDown') rotate(0, 0.25);
+      else return;
+      event.preventDefault();
     };
     element.addEventListener('pointerdown', down);
     element.addEventListener('pointermove', move);
@@ -106,6 +122,7 @@ export function useUniverseControls(
     element.addEventListener('lostpointercapture', up);
     element.addEventListener('click', click, true);
     element.addEventListener('wheel', wheel, { passive: false });
+    element.addEventListener('keydown', key);
     return () => {
       element.removeEventListener('pointerdown', down);
       element.removeEventListener('pointermove', move);
@@ -114,6 +131,7 @@ export function useUniverseControls(
       element.removeEventListener('lostpointercapture', up);
       element.removeEventListener('click', click, true);
       element.removeEventListener('wheel', wheel);
+      element.removeEventListener('keydown', key);
       for (const [id, pointer] of pointers)
         if (pointer.target.hasPointerCapture(id)) pointer.target.releasePointerCapture(id);
       delete element.dataset.dragging;

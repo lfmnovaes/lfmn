@@ -190,7 +190,11 @@
     "resume": "Retomar animação"
   },
   "universe": {
-    "title": "Universo",
+    "scaleToggle": "Escala realista",
+    "realisticView": "Usar tamanhos e distâncias realistas",
+    "artisticView": "Usar a vista artística",
+    "realistic": "Tamanhos e distâncias realistas; órbitas aproximadas fixas e posições ilustrativas. Use a lista para visitar planetas distantes.",
+    "timeScale": "Tempo simulado por segundo durante a reprodução:",
     "skipToFacts": "Ir para as informações do astro",
     "scene": "Sistema solar ilustrativo",
     "loading": "Carregando a cena do Universo",
@@ -223,11 +227,9 @@
     "position": "Posição na navegação do sistema solar",
     "previous": "Astro anterior",
     "next": "Próximo astro",
-    "rotateLeft": "Girar câmera para a esquerda",
-    "rotateRight": "Girar câmera para a direita",
     "rotateUp": "Girar câmera para cima",
     "rotateDown": "Girar câmera para baixo",
-    "gestures": "Role para viajar · Arraste para orbitar · Use dois dedos para aproximar",
+    "gestures": "Role para viajar · Ctrl + rolagem para zoom · Arraste ou use as setas para orbitar · Faça pinça para zoom",
     "content": {
       "sun": {
         "kind": "Estrela",
@@ -421,6 +423,15 @@
       }
     },
     "textureCredits": "Texturas:",
-    "textureFallback": "Algumas texturas não carregaram; as ilustrações simplificadas e todas as informações continuam disponíveis."
+    "textureFallback": "Algumas texturas não carregaram; as ilustrações simplificadas e todas as informações continuam disponíveis.",
+    "speeds": {
+      "hour": "1 hora / s",
+      "sixHours": "6 horas / s",
+      "twelveHours": "12 horas / s",
+      "week": "7 dias / s",
+      "month": "30 dias / s"
+    },
+    "enableMotion": "Ativar animações",
+    "reducedMotion": "Seu navegador pede movimento reduzido. Ative as animações ou escolha uma velocidade para habilitar as órbitas e a viagem da câmera."
   }
 }
