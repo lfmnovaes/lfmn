@@ -19,12 +19,12 @@ test('local pause controls retain the pause after focus leaves and resume on req
     await pause.focus();
     await page.keyboard.press('Space');
     await expect(region).toHaveAttribute('data-paused', 'true');
-    await page.getByRole('button', { name: 'Normal', exact: true }).focus();
+    await page.getByRole('link', { name: 'Normal', exact: true }).focus();
     await page.mouse.move(0, 0);
     await expect(region.locator(track)).toHaveCSS('animation-play-state', 'paused');
     await region.getByRole('button', { name: 'Resume animation' }).focus();
     await page.keyboard.press('Space');
-    await page.getByRole('button', { name: 'Normal', exact: true }).focus();
+    await page.getByRole('link', { name: 'Normal', exact: true }).focus();
     await expect(region.locator(track)).toHaveCSS('animation-play-state', 'running');
   }
 });

@@ -253,9 +253,9 @@ test('Select and mode controls inherit the light palette, while chart theme chan
   await page.keyboard.press('Escape');
   await expect(popup).toBeHidden();
   await expect(page.getByRole('combobox')).toBeFocused();
-  await page.getByRole('button', { name: 'Normal', exact: true }).focus();
+  await page.getByRole('link', { name: 'Normal', exact: true }).focus();
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('button', { name: 'Universe', exact: true })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'Universe', exact: true })).toBeFocused();
   await expect(page.getByRole('tooltip')).toHaveCount(0);
 });
 

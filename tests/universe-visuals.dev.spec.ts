@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import en from '../src/messages/en.json';
+import { trackUniverseResources } from './universe-fixtures';
 
 const copy = en.universe;
 
@@ -35,7 +36,7 @@ test('desktop bloom renders real passes and releases its targets on a smaller vi
       errors.push(message.text());
   });
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/universe-preview');
+  await page.goto('/universe');
   const canvas = page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-effects', 'glow');
   await expect(page.getByRole('progressbar')).toHaveCount(0);
@@ -71,7 +72,7 @@ test('decorative assets load progressively and failed maps retain the scene and 
   });
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/universe-preview');
+  await page.goto('/universe');
   try {
     await expect(page.getByRole('button', { name: copy.zoomIn, exact: true })).toBeEnabled();
     await expect.poll(() => held).toBe(12);
@@ -111,7 +112,7 @@ test('mode and locale controls retain Universe, support browser history, and fit
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/universe-preview');
+  await page.goto('/universe');
   await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');
   await page.getByRole('button', { name: 'Saturn', exact: true }).click();
   for (const width of [320, 600, 900, 1440]) {
@@ -120,23 +121,23 @@ test('mode and locale controls retain Universe, support browser history, and fit
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
       .toBeLessThanOrEqual(width);
-    await expect(page.getByRole('button', { name: 'Normal', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Normal', exact: true })).toBeVisible();
   }
   await page.getByRole('link', { name: 'PT', exact: true }).click();
-  await expect(page).toHaveURL('/pt-BR/universe-preview');
+  await expect(page).toHaveURL('/pt-BR/universe');
   await expect(page.locator('html')).toHaveAttribute('lang', 'pt-BR');
-  await expect(page.getByRole('button', { name: 'Universo', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Universo', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   );
-  await page.getByRole('button', { name: 'Normal', exact: true }).click();
+  await page.getByRole('link', { name: 'Normal', exact: true }).click();
   await expect(page).toHaveURL('/pt-BR');
   await expect(page.locator('a[download]')).toHaveCount(2);
   await page.goBack();
-  await expect(page).toHaveURL('/pt-BR/universe-preview');
+  await expect(page).toHaveURL('/pt-BR/universe');
   await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');
   await page.getByRole('link', { name: 'EN', exact: true }).click();
-  await expect(page).toHaveURL('/universe-preview');
+  await expect(page).toHaveURL('/universe');
   await expect(page.getByRole('link', { name: 'GitHub', exact: true })).toHaveAttribute(
     'href',
     'https://github.com/lfmnovaes',
@@ -150,44 +151,7 @@ test('repeated mode entry releases WebGL contexts and keeps resident texture all
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript(() => {
-    const contexts: { lost: boolean; textures: Set<WebGLTexture> }[] = [];
-    const seen = new WeakMap<WebGL2RenderingContext, (typeof contexts)[number]>();
-    const getContext = HTMLCanvasElement.prototype.getContext;
-    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
-      value(this: HTMLCanvasElement, ...args: unknown[]) {
-        const context = Reflect.apply(getContext, this, args);
-        if (context instanceof WebGL2RenderingContext && !seen.has(context)) {
-          const state = { lost: false, textures: new Set<WebGLTexture>() };
-          contexts.push(state);
-          seen.set(context, state);
-          this.addEventListener('webglcontextlost', () => {
-            state.lost = true;
-          });
-        }
-        return context;
-      },
-    });
-    const create = WebGL2RenderingContext.prototype.createTexture;
-    WebGL2RenderingContext.prototype.createTexture = function () {
-      const texture = create.call(this);
-      if (texture) seen.get(this)?.textures.add(texture);
-      return texture;
-    };
-    const remove = WebGL2RenderingContext.prototype.deleteTexture;
-    WebGL2RenderingContext.prototype.deleteTexture = function (texture) {
-      if (texture) seen.get(this)?.textures.delete(texture);
-      remove.call(this, texture);
-    };
-    Object.defineProperty(window, 'universeResources', {
-      get: () => ({
-        contexts: contexts.filter((context) => !context.lost).length,
-        textures: contexts
-          .filter((context) => !context.lost)
-          .reduce((total, context) => total + context.textures.size, 0),
-      }),
-    });
-  });
+  await page.addInitScript(trackUniverseResources);
   await page.goto('/');
   const resources = () =>
     page.evaluate(
@@ -195,7 +159,7 @@ test('repeated mode entry releases WebGL contexts and keeps resident texture all
     );
   const allocations: number[] = [];
   for (let entry = 0; entry < 3; entry++) {
-    await page.getByRole('button', { name: 'Universe', exact: true }).click();
+    await page.getByRole('link', { name: 'Universe', exact: true }).click();
     await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');
     await expect(page.getByRole('progressbar')).toHaveCount(0);
     await page.evaluate(
@@ -207,7 +171,7 @@ test('repeated mode entry releases WebGL contexts and keeps resident texture all
     expect(current.textures).toBeGreaterThan(0);
     expect(current.textures).toBeLessThan(40);
     allocations.push(current.textures);
-    await page.getByRole('button', { name: 'Normal', exact: true }).click();
+    await page.getByRole('link', { name: 'Normal', exact: true }).click();
     await expect(page.locator('canvas')).toHaveCount(0);
     await expect.poll(resources).toEqual({ contexts: 0, textures: 0 });
   }

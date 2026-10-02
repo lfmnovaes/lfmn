@@ -5,10 +5,11 @@ import { type ReactNode, useEffect, useRef } from 'react';
 import { Grid2X2, Moon, Rocket, Sun } from 'lucide-react';
 
 import type { Locale } from '@/i18n/routing';
+import { cn } from '@/lib/utils';
 
 import { Github } from './brand-icons';
 import { useLighting } from './site-shell';
-import { Button } from './ui/button';
+import { Button, buttonVariants } from './ui/button';
 import { ButtonGroup } from './ui/button-group';
 import styles from './ui/segmented-control.module.css';
 import { SelectionIndicator } from './ui/selection-indicator';
@@ -72,36 +73,32 @@ function ModeSwitch({
       aria-label={locale === 'en' ? 'Site mode' : 'Modo do site'}
     >
       <SelectionIndicator index={mode === 'normal' ? 0 : 1} count={2} />
-      <Button
-        variant="ghost"
-        nativeButton={false}
-        render={<Link href={locale === 'en' ? '/' : '/pt-BR'} prefetch={false} />}
+      <Link
+        href={locale === 'en' ? '/' : '/pt-BR'}
+        prefetch={false}
         aria-current={mode === 'normal' ? 'page' : undefined}
         aria-label={normal}
-        className="mode-button"
+        className={cn(buttonVariants({ variant: 'ghost' }), 'mode-button')}
       >
         <Grid2X2 aria-hidden="true" />
         <span className="mode-label">{normal}</span>
-      </Button>
-      <Button
-        variant="ghost"
-        nativeButton={false}
-        render={
-          <Link href={`${locale === 'en' ? '' : '/pt-BR'}/universe-preview`} prefetch={false} />
-        }
+      </Link>
+      <Link
+        href={`${locale === 'en' ? '' : '/pt-BR'}/universe`}
+        prefetch={false}
         aria-current={mode === 'universe' ? 'page' : undefined}
         aria-label={universe}
-        className="mode-button"
+        className={cn(buttonVariants({ variant: 'ghost' }), 'mode-button')}
       >
         <Rocket aria-hidden="true" />
         <span className="mode-label">{universe}</span>
-      </Button>
+      </Link>
     </ButtonGroup>
   );
 }
 
 function LanguageSwitch({ locale, mode }: { locale: Locale; mode: 'normal' | 'universe' }) {
-  const path = mode === 'universe' ? '/universe-preview' : '';
+  const path = mode === 'universe' ? '/universe' : '';
   return (
     <nav
       className={`locale-switch ${styles.group}`}

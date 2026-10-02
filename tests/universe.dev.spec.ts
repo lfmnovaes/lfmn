@@ -3,12 +3,13 @@ import { expect, test } from '@playwright/test';
 
 import en from '../src/messages/en.json';
 import pt from '../src/messages/pt-BR.json';
+import { trackUniverseFrames } from './universe-fixtures';
 
 for (const [locale, copy] of [
   ['en', en],
   ['pt-BR', pt],
 ] as const) {
-  const path = locale === 'en' ? '/universe-preview' : '/pt-BR/universe-preview';
+  const path = locale === 'en' ? '/universe' : '/pt-BR/universe';
 
   test(`${locale}: scene loads automatically and every body supports selection and camera focus`, async ({
     page,
@@ -74,7 +75,7 @@ for (const [locale, copy] of [
       .analyze();
     expect(results.violations).toEqual([]);
     expect(errors).toEqual([]);
-    await page.getByRole('button', { name: copy.nav.normal, exact: true }).click();
+    await page.getByRole('link', { name: copy.nav.normal, exact: true }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Luis');
     await expect(page.locator('a[download]')).toHaveCount(2);
   });
@@ -153,7 +154,7 @@ test('loading reflects pending renderer chunks and a failed import preserves the
     await pending;
     await route.continue();
   });
-  await page.goto('/universe-preview');
+  await page.goto('/universe');
   try {
     await expect.poll(() => held).toBeGreaterThan(0);
     await expect(page.getByRole('progressbar', { name: en.universe.loading })).toBeVisible();
@@ -176,7 +177,7 @@ test('loading reflects pending renderer chunks and a failed import preserves the
 
 test('canvas pointer selection has the same DOM result as keyboard selection', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/universe-preview');
+  await page.goto('/universe');
   const canvas = page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-focused-planet', 'sun');
   await expect(page.getByRole('progressbar')).toHaveCount(0);
@@ -226,16 +227,8 @@ test('canvas pointer selection has the same DOM result as keyboard selection', a
 
 test('reduced motion stops rendering between direct focus and zoom changes', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript(() => {
-    let frames = 0;
-    const clear = WebGL2RenderingContext.prototype.clear;
-    WebGL2RenderingContext.prototype.clear = function (mask: number) {
-      frames++;
-      return clear.call(this, mask);
-    };
-    Object.defineProperty(window, 'universeFrames', { get: () => frames });
-  });
-  await page.goto('/universe-preview');
+  await page.addInitScript(trackUniverseFrames);
+  await page.goto('/universe');
   const canvas = page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-focused-planet', 'sun');
   await expect(page.getByRole('progressbar')).toHaveCount(0);
@@ -269,7 +262,7 @@ test('all bodies have readable facts without JavaScript and Universe has no down
   const context = await browser.newContext({ javaScriptEnabled: false, baseURL });
   try {
     const page = await context.newPage();
-    await page.goto('/universe-preview');
+    await page.goto('/universe');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(en.universe.bodies.sun);
     await expect(page.locator('a[download]')).toHaveCount(0);
     await expect(page.getByRole('progressbar')).toBeHidden();
@@ -281,7 +274,7 @@ test('all bodies have readable facts without JavaScript and Universe has no down
         en.universe.content[id as keyof typeof en.universe.content].description,
       );
     }
-    await expect(page.getByRole('button', { name: en.nav.normal, exact: true })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: en.nav.normal, exact: true })).toHaveAttribute(
       'href',
       '/',
     );

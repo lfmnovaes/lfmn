@@ -33,17 +33,31 @@ import {
   SheetTrigger,
 } from '../ui/sheet';
 import { ToggleGroup, ToggleGroupItem } from '../ui/toggle-group';
+import styles from './universe.module.css';
 import type { PlanetSummary } from './universe-data';
 import { UniverseFacts } from './universe-facts';
-import styles from './universe-preview.module.css';
 import type { AssetStatus } from './use-universe-textures';
 
 const Scene = dynamic(() => import('./universe-scene'), { ssr: false, loading: () => null });
-const SceneBoundary = catchError(({ unavailable }: { unavailable: string }) => (
-  <p className={styles.notice} role="status">
-    {unavailable}
-  </p>
-));
+type UnavailableProps = { copy: Pick<typeof messages.universe, 'unavailable' | 'reload'> };
+function SceneUnavailable({ copy }: UnavailableProps) {
+  return (
+    <div className={styles.notice}>
+      <p role="status">{copy.unavailable}</p>
+      <Button variant="outline" onClick={() => window.location.reload()}>
+        {copy.reload}
+      </Button>
+    </div>
+  );
+}
+function SceneErrorFallback({
+  copy,
+  onUnavailable,
+}: UnavailableProps & { onUnavailable: () => void }) {
+  useEffect(() => onUnavailable(), [onUnavailable]);
+  return <SceneUnavailable copy={copy} />;
+}
+const SceneBoundary = catchError(SceneErrorFallback);
 
 function subscribeToMotion(change: () => void) {
   const media = matchMedia('(prefers-reduced-motion: reduce)');
@@ -52,7 +66,7 @@ function subscribeToMotion(change: () => void) {
 }
 const motionPreference = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function UniversePreview({
+export function Universe({
   copy,
   planets,
   locale,
@@ -89,6 +103,12 @@ export function UniversePreview({
       previous.loading === status.loading && previous.failed === status.failed ? previous : status,
     );
   }, []);
+  const onUnavailable = useCallback(() => {
+    setReady(false);
+    setSupport('unavailable');
+    setAssets({ loading: false, failed: false });
+    redraw.current = () => {};
+  }, []);
 
   useEffect(() => {
     try {
@@ -106,24 +126,22 @@ export function UniversePreview({
 
   return (
     <PortalContainerContext value={surface}>
-      <main ref={surface} className={styles.preview}>
+      <main ref={surface} className={styles.universe}>
         <a className="skip-link" href="#universe-summary">
           {copy.skipToFacts}
         </a>
         <header className={styles.header}>
           <div>
             <span className="wordmark">lfmn</span>
-            <p className="eyebrow">{copy.preview}</p>
+            <p className="eyebrow">{copy.title}</p>
           </div>
           <HeaderNavigation locale={locale} mode="universe" {...navigation} />
         </header>
         <section ref={stage} className={styles.stage} aria-label={copy.scene}>
           {support === 'unavailable' ? (
-            <p className={styles.notice} role="status">
-              {copy.unavailable}
-            </p>
+            <SceneUnavailable copy={copy} />
           ) : (
-            <SceneBoundary unavailable={copy.unavailable}>
+            <SceneBoundary copy={copy} onUnavailable={onUnavailable}>
               {(!ready || assets.loading) && (
                 <div
                   className="market-loading-bar js-control"
@@ -154,6 +172,7 @@ export function UniversePreview({
                   reduced={reduced || paused}
                   onReady={onReady}
                   onAssets={onAssets}
+                  onUnavailable={onUnavailable}
                 />
               )}
               <span ref={callout} className={styles.callout} aria-hidden="true" hidden>

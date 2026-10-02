@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
 import en from '../src/messages/en.json';
+import { trackUniverseFrames } from './universe-fixtures';
 
 const copy = en.universe;
 
@@ -17,7 +18,7 @@ test('scene wheel travel is bounded and drag capture/cancellation does not selec
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/universe-preview');
+  await page.goto('/universe');
   const canvas = page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-focused-planet', 'sun');
   await expect(page.getByRole('progressbar')).toHaveCount(0);
@@ -121,7 +122,7 @@ test('real two-finger pinch and one-finger touch drag update the scene', async (
     'Native multi-touch injection uses the Chromium CDP input API.',
   );
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/universe-preview');
+  await page.goto('/universe');
   const canvas = page.locator('canvas');
   await expect(canvas).toHaveAttribute('data-focused-planet', 'sun');
   await expect(page.getByRole('progressbar')).toHaveCount(0);
@@ -179,16 +180,8 @@ test('reading facts freezes the renderer, traps focus, and allows native panel s
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 420 });
-  await page.addInitScript(() => {
-    let frames = 0;
-    const clear = WebGL2RenderingContext.prototype.clear;
-    WebGL2RenderingContext.prototype.clear = function (mask: number) {
-      frames++;
-      return clear.call(this, mask);
-    };
-    Object.defineProperty(window, 'universeFrames', { get: () => frames });
-  });
-  await page.goto('/universe-preview');
+  await page.addInitScript(trackUniverseFrames);
+  await page.goto('/universe');
   await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');
   await expect(page.getByRole('progressbar')).toHaveCount(0);
   await page.getByRole('button', { name: copy.explore, exact: true }).click();

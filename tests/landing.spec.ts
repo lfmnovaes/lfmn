@@ -36,18 +36,15 @@ for (const locale of ['en', 'pt-BR']) {
     await expect(page.locator('.motion-button')).toHaveCount(0);
     await expect(page.locator('a[download]')).toHaveCount(2);
     await expect(page.locator('.resume-downloads a')).toHaveCount(2);
-    await expect(page.getByRole('button', { name: 'Normal', exact: true })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: 'Normal', exact: true })).toHaveAttribute(
       'aria-current',
       'page',
     );
-    const universe = page.getByRole('button', {
+    const universe = page.getByRole('link', {
       name: locale === 'en' ? 'Universe' : 'Universo',
       exact: true,
     });
-    await expect(universe).toHaveAttribute(
-      'href',
-      `${locale === 'en' ? '' : '/pt-BR'}/universe-preview`,
-    );
+    await expect(universe).toHaveAttribute('href', `${locale === 'en' ? '' : '/pt-BR'}/universe`);
     await expect(universe).not.toHaveAttribute('aria-disabled');
     await universe.focus();
     await expect(page.getByRole('tooltip')).toHaveCount(0);
@@ -93,16 +90,16 @@ test('mode navigation opens Universe automatically and preserves Normal lighting
   await page.goto('/');
   await page.getByRole('button', { name: 'Turn the lights on' }).click();
   await expect(page.locator('.site-shell')).toHaveAttribute('data-lights', 'on');
-  await page.getByRole('button', { name: 'Universe', exact: true }).focus();
+  await page.getByRole('link', { name: 'Universe', exact: true }).focus();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL('/universe-preview');
+  await expect(page).toHaveURL('/universe');
   await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');
-  await expect(page.getByRole('button', { name: 'Universe', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Universe', exact: true })).toHaveAttribute(
     'aria-current',
     'page',
   );
   await expect(page.getByRole('tooltip')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Normal', exact: true }).click();
+  await page.getByRole('link', { name: 'Normal', exact: true }).click();
   await expect(page).toHaveURL('/');
   await expect(page.locator('.site-shell')).toHaveAttribute('data-lights', 'on');
   await expect(page.locator('a[download]')).toHaveCount(2);

@@ -3,8 +3,9 @@
 import { type RefObject, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { BackSide, DoubleSide, type Mesh, Vector3 } from 'three';
+import { type Group, NeutralToneMapping, Vector3 } from 'three';
 
+import { UniverseBackground } from './universe-background';
 import { AsteroidBelt, PlanetBody } from './universe-bodies';
 import { PLANETS, type PlanetId } from './universe-data';
 import { UniverseEffects } from './universe-effects';
@@ -20,7 +21,27 @@ type SceneProps = {
   reduced: boolean;
   onReady: (invalidate: () => void) => void;
   onAssets: (status: AssetStatus) => void;
+  onUnavailable: () => void;
 };
+
+function OrbitPath({ orbit, color }: { orbit: number; color: string }) {
+  const points = useMemo(() => {
+    const positions = new Float32Array(192 * 3);
+    for (let index = 0; index < 192; index++) {
+      const angle = (index / 192) * Math.PI * 2;
+      positions.set([Math.cos(angle) * orbit, 0, Math.sin(angle) * orbit], index * 3);
+    }
+    return positions;
+  }, [orbit]);
+  return (
+    <lineLoop>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[points, 3]} />
+      </bufferGeometry>
+      <lineBasicMaterial color={color} transparent opacity={0.16} depthWrite={false} />
+    </lineLoop>
+  );
+}
 
 function SolarSystem({
   selected,
@@ -32,8 +53,9 @@ function SolarSystem({
   reduced,
   onReady,
   onAssets,
+  onUnavailable,
 }: SceneProps) {
-  const bodies = useRef<(Mesh | null)[]>([]);
+  const bodies = useRef<(Group | null)[]>([]);
   const view = useRef({
     time: 0,
     ready: false,
@@ -58,25 +80,11 @@ function SolarSystem({
   useEffect(() => {
     gl.domElement.dataset.effects = postprocessed ? 'bloom' : 'glow';
   }, [gl, postprocessed]);
-  const starCount = desktop ? 3000 : 1200;
-  const stars = useMemo(() => {
-    const points = new Float32Array(starCount * 3);
-    for (let index = 0; index < starCount; index++) {
-      const longitude = index * 2.399963229728653;
-      const height = 1 - (2 * (index + 0.5)) / starCount;
-      const radius = 900;
-      const spread = Math.sqrt(1 - height * height);
-      points.set(
-        [
-          radius * spread * Math.cos(longitude),
-          radius * height,
-          radius * spread * Math.sin(longitude),
-        ],
-        index * 3,
-      );
-    }
-    return points;
-  }, [starCount]);
+  useEffect(() => {
+    const canvas = gl.domElement;
+    canvas.addEventListener('webglcontextlost', onUnavailable);
+    return () => canvas.removeEventListener('webglcontextlost', onUnavailable);
+  }, [gl, onUnavailable]);
 
   useFrame((_, delta) => {
     if (locked) return;
@@ -88,7 +96,6 @@ function SolarSystem({
       if (!mesh) continue;
       const angle = (planet.phase + state.time * planet.speed) % (Math.PI * 2);
       mesh.position.set(Math.cos(angle) * planet.orbit, 0, Math.sin(angle) * planet.orbit);
-      if (!reduced) mesh.rotation.y = (mesh.rotation.y + elapsed * 0.15) % (Math.PI * 2);
     }
     const index = PLANETS.findIndex(({ id }) => id === selected);
     const body = bodies.current[index];
@@ -101,7 +108,7 @@ function SolarSystem({
     }
     state.bodyPosition.copy(body.position);
     state.planet = index;
-    const radius = selected === 'sun' ? 160 : Math.max(3.5, PLANETS[index].size * 4);
+    const radius = Math.max(3.5, PLANETS[index].size * 4);
     const distance =
       (radius / (Math.tan((25 * Math.PI) / 180) * Math.min(size.width / size.height, 1))) *
       zoom.current;
@@ -143,35 +150,12 @@ function SolarSystem({
   return (
     <>
       <color attach="background" args={['#050711']} />
-      <ambientLight intensity={0.3} />
-      <pointLight position={[0, 0, 0]} intensity={80} color="#ffaa11" decay={1.2} />
-      {textures.galaxy && (
-        <mesh rotation={[Math.PI / 3, 0, Math.PI / 4]}>
-          <sphereGeometry args={[1200, 32, 16]} />
-          <meshBasicMaterial
-            map={textures.galaxy}
-            color="#a29dba"
-            side={BackSide}
-            transparent
-            opacity={0.25}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
-      <points>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[stars, 3]} />
-        </bufferGeometry>
-        <pointsMaterial color="#ccd6f6" size={desktop ? 1.2 : 1.5} sizeAttenuation />
-      </points>
+      <ambientLight intensity={0.55} />
+      <pointLight position={[0, 0, 0]} intensity={80} color="white" decay={1.2} />
+      <UniverseBackground galaxy={textures.galaxy} small={!desktop} reduced={reduced || locked} />
       {PLANETS.map((planet, index) => (
         <group key={planet.id}>
-          {planet.orbit > 0 && (
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[planet.orbit - 0.045, planet.orbit + 0.045, 192]} />
-              <meshBasicMaterial color={planet.color} transparent opacity={0.2} side={DoubleSide} />
-            </mesh>
-          )}
+          {planet.orbit > 0 && <OrbitPath orbit={planet.orbit} color={planet.color} />}
           <PlanetBody
             planet={planet}
             texture={textures[planet.id]}
@@ -203,6 +187,7 @@ export default function UniverseScene(props: SceneProps) {
     <Canvas
       aria-hidden="true"
       dpr={[1, 1.5]}
+      gl={{ alpha: false, toneMapping: NeutralToneMapping }}
       camera={{ position: [80, 80, 110], fov: 50, near: 0.1, far: 3000 }}
       frameloop={props.reduced || props.locked || !visible ? 'demand' : 'always'}
     >

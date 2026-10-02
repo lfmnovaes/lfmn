@@ -1,4 +1,4 @@
-.preview {
+.universe {
   --background: #050711;
   --foreground: #e8edf8;
   --secondary: #141b2b;
@@ -216,7 +216,7 @@
 }
 
 @media (scripting: none) {
-  .preview {
+  .universe {
     height: auto;
     min-height: 100svh;
   }
@@ -267,7 +267,7 @@
   background: var(--primary);
 }
 @media (min-width: 900px) and (scripting: enabled) {
-  .preview {
+  .universe {
     height: 100svh;
     grid-template-rows: auto minmax(300px, 1fr);
   }
@@ -324,7 +324,7 @@
   }
 }
 @media (max-width: 600px) {
-  .preview {
+  .universe {
     --hud-padding: 16px;
   }
   .header {

@@ -1,7 +1,7 @@
 import type messages from '@/messages/en.json';
 
+import styles from './universe.module.css';
 import type { PlanetSummary } from './universe-data';
-import styles from './universe-preview.module.css';
 
 export function UniverseFacts({
   planet,

@@ -23,7 +23,7 @@ test('production Normal never prefetches the renderer and both Universe locales 
   for (const path of ['/', '/pt-BR']) {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Luis');
-    const universe = page.getByRole('button', { name: /^(Universe|Universo)$/ });
+    const universe = page.getByRole('link', { name: /^(Universe|Universo)$/ });
     await universe.hover();
     await universe.focus();
     await expect(universe).not.toHaveAttribute('aria-disabled');
@@ -31,7 +31,7 @@ test('production Normal never prefetches the renderer and both Universe locales 
   }
   expect(requested.filter((path) => sceneChunks.has(path))).toEqual([]);
   expect(requested.filter((path) => /\/textures\//.test(path))).toEqual([]);
-  for (const path of ['/universe-preview', '/pt-BR/universe-preview']) {
+  for (const path of ['/universe', '/pt-BR/universe']) {
     const response = await page.goto(path);
     expect(response?.status()).toBe(200);
     await expect(page.locator('canvas')).toHaveAttribute('data-focused-planet', 'sun');

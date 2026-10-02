@@ -190,11 +190,12 @@
     "resume": "Retomar animação"
   },
   "universe": {
-    "preview": "Universo / Prévia de desenvolvimento",
+    "title": "Universo",
     "skipToFacts": "Ir para as informações do astro",
     "scene": "Sistema solar ilustrativo",
     "loading": "Carregando a cena do Universo",
     "unavailable": "A cena 3D está indisponível. Você ainda pode escolher um astro e explorar suas informações.",
+    "reload": "Recarregar cena",
     "noJavaScript": "A cena 3D precisa de JavaScript. As informações de todos os astros continuam disponíveis abaixo.",
     "zoomIn": "Aproximar",
     "zoomOut": "Afastar",

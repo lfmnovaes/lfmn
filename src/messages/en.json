@@ -190,11 +190,12 @@
     "resume": "Resume animation"
   },
   "universe": {
-    "preview": "Universe / Development preview",
+    "title": "Universe",
     "skipToFacts": "Skip to planet facts",
     "scene": "Illustrative solar system",
     "loading": "Loading Universe scene",
     "unavailable": "The 3D scene is unavailable. You can still select a body and explore its facts.",
+    "reload": "Reload scene",
     "noJavaScript": "The 3D scene needs JavaScript. Facts about every body remain available below.",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",

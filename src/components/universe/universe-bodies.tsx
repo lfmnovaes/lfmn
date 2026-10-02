@@ -2,17 +2,21 @@
 
 import { type Ref, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   AdditiveBlending,
   BackSide,
+  Color,
   DataTexture,
   DoubleSide,
+  type Group,
   type InstancedMesh,
   LinearFilter,
   type Mesh,
   Object3D,
+  RingGeometry,
   type ShaderMaterial,
+  SRGBColorSpace,
   type Texture,
 } from 'three';
 
@@ -110,6 +114,91 @@ function SunGlow({ size }: { size: number }) {
   );
 }
 
+const atmosphereVertex = `
+  varying vec3 vNormal;
+  varying vec3 vView;
+  void main() {
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    vNormal = normalize(normalMatrix * normal);
+    vView = -viewPosition.xyz;
+    gl_Position = projectionMatrix * viewPosition;
+  }
+`;
+const atmosphereFragment = `
+  uniform vec3 color;
+  varying vec3 vNormal;
+  varying vec3 vView;
+  void main() {
+    float rim = pow(1.0 - abs(dot(normalize(vNormal), normalize(vView))), 3.0);
+    gl_FragColor = vec4(color, rim * 0.35);
+    #include <colorspace_fragment>
+  }
+`;
+
+function Atmosphere({ size, color }: { size: number; color: string }) {
+  const uniforms = useMemo(() => ({ color: { value: new Color(color) } }), [color]);
+  return (
+    <mesh scale={1.045}>
+      <sphereGeometry args={[size, 32, 24]} />
+      <shaderMaterial
+        uniforms={uniforms}
+        vertexShader={atmosphereVertex}
+        fragmentShader={atmosphereFragment}
+        blending={AdditiveBlending}
+        transparent
+        depthWrite={false}
+        toneMapped={false}
+        side={BackSide}
+      />
+    </mesh>
+  );
+}
+
+function SaturnRings({ size }: { size: number }) {
+  const { geometry, texture } = useMemo(() => {
+    const inner = size * 1.47;
+    const outer = size * 3.33;
+    const geometry = new RingGeometry(inner, outer, 128);
+    const positions = geometry.attributes.position;
+    for (let index = 0; index < positions.count; index++) {
+      const radius = Math.hypot(positions.getX(index), positions.getY(index));
+      geometry.attributes.uv.setXY(index, (radius - inner) / (outer - inner), 0.5);
+    }
+    const data = new Uint8Array(256 * 4);
+    for (let index = 0; index < 256; index++) {
+      const radius = index / 255;
+      const band = 0.68 + Math.sin(index * 1.7) * 0.1 + Math.sin(index * 0.27) * 0.12;
+      const gap = radius > 0.52 && radius < 0.57;
+      data.set([223 * band, 211 * band, 180 * band, gap ? 12 : 190 * band], index * 4);
+    }
+    const texture = new DataTexture(data, 256, 1);
+    texture.colorSpace = SRGBColorSpace;
+    texture.minFilter = LinearFilter;
+    texture.magFilter = LinearFilter;
+    texture.needsUpdate = true;
+    return { geometry, texture };
+  }, [size]);
+  useEffect(
+    () => () => {
+      geometry.dispose();
+      texture.dispose();
+    },
+    [geometry, texture],
+  );
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]}>
+      <primitive object={geometry} attach="geometry" />
+      <meshStandardMaterial
+        map={texture}
+        roughness={1}
+        transparent
+        depthWrite={false}
+        side={DoubleSide}
+      />
+    </mesh>
+  );
+}
+
 export function PlanetBody({
   planet,
   texture,
@@ -125,71 +214,81 @@ export function PlanetBody({
   reduced: boolean;
   postprocessed: boolean;
   onSelect: (id: PlanetId) => void;
-  ref: Ref<Mesh>;
+  ref: Ref<Group>;
 }) {
+  const body = useRef<Mesh>(null);
+  const cloudLayer = useRef<Mesh>(null);
+  const visual = useRef<Group>(null);
+  const hovered = useRef(false);
+  const { gl, invalidate } = useThree();
+  useFrame((_, delta) => {
+    const elapsed = Math.min(delta, 0.1);
+    if (!reduced) {
+      if (body.current) body.current.rotation.y += elapsed * planet.spin;
+      if (cloudLayer.current) cloudLayer.current.rotation.y += elapsed * planet.spin * 1.08;
+    }
+    if (visual.current) {
+      const target = !reduced && hovered.current ? 1.05 : 1;
+      const weight = reduced ? 1 : 1 - Math.exp(-elapsed * 12);
+      visual.current.scale.setScalar(
+        visual.current.scale.x + (target - visual.current.scale.x) * weight,
+      );
+    }
+  });
   return (
-    <mesh
+    <group
       ref={ref}
       onClick={(event) => {
         event.stopPropagation();
         onSelect(planet.id);
       }}
+      onPointerOver={(event) => {
+        if (event.nativeEvent.pointerType !== 'mouse' || event.nativeEvent.buttons) return;
+        event.stopPropagation();
+        hovered.current = true;
+        gl.domElement.style.cursor = 'pointer';
+        invalidate();
+      }}
+      onPointerOut={() => {
+        hovered.current = false;
+        gl.domElement.style.cursor = '';
+        invalidate();
+      }}
     >
-      <sphereGeometry args={[planet.size, planet.id === 'sun' ? 64 : 32, 32]} />
-      {planet.id === 'sun' ? (
-        texture ? (
-          <SunMaterial texture={texture} reduced={reduced} postprocessed={postprocessed} />
-        ) : (
-          <meshBasicMaterial color={planet.color} />
-        )
-      ) : (
-        <meshStandardMaterial
-          map={texture}
-          color={texture ? 'white' : planet.color}
-          roughness={0.8}
-          metalness={0.2}
-          emissive={planet.color}
-          emissiveIntensity={0.02}
-        />
-      )}
-      {planet.id === 'sun' && !postprocessed && <SunGlow size={planet.size} />}
-      {planet.id === 'earth' && clouds && (
-        <mesh scale={1.01}>
-          <sphereGeometry args={[planet.size, 32, 32]} />
-          <meshStandardMaterial
-            map={clouds}
-            transparent
-            opacity={0.5}
-            depthWrite={false}
-            blending={AdditiveBlending}
-          />
+      <group ref={visual} rotation={[0, 0, (planet.tilt * Math.PI) / 180]}>
+        <mesh ref={body}>
+          <sphereGeometry args={[planet.size, planet.id === 'sun' ? 64 : 32, 32]} />
+          {planet.id === 'sun' ? (
+            texture ? (
+              <SunMaterial texture={texture} reduced={reduced} postprocessed={postprocessed} />
+            ) : (
+              <meshBasicMaterial color={planet.color} />
+            )
+          ) : (
+            <meshStandardMaterial
+              key={texture ? 'textured' : 'fallback'}
+              map={texture}
+              color={texture ? 'white' : planet.color}
+              roughness={0.8}
+              metalness={0}
+              emissive={planet.color}
+              emissiveIntensity={0.02}
+            />
+          )}
         </mesh>
-      )}
-      {planet.id === 'saturn' && (
-        <mesh rotation={[-Math.PI / 2.2, 0, 0]}>
-          <ringGeometry args={[planet.size * 1.47, planet.size * 3.33, 128]} />
-          <meshStandardMaterial
-            color="#dfd195"
-            transparent
-            opacity={0.6}
-            depthWrite={false}
-            side={DoubleSide}
-          />
-        </mesh>
-      )}
-      {planet.id !== 'sun' && (
-        <mesh scale={1.15}>
-          <sphereGeometry args={[planet.size, 24, 16]} />
-          <meshLambertMaterial
-            color={planet.color}
-            transparent
-            opacity={0.08}
-            depthWrite={false}
-            side={BackSide}
-          />
-        </mesh>
-      )}
-    </mesh>
+        {planet.id === 'earth' && clouds && (
+          <mesh ref={cloudLayer} scale={1.01}>
+            <sphereGeometry args={[planet.size, 32, 32]} />
+            <meshStandardMaterial map={clouds} transparent opacity={0.5} depthWrite={false} />
+          </mesh>
+        )}
+        {planet.id === 'saturn' && <SaturnRings size={planet.size} />}
+        {planet.id === 'sun' && !postprocessed && <SunGlow size={planet.size} />}
+        {planet.id !== 'sun' && planet.id !== 'mercury' && planet.id !== 'pluto' && (
+          <Atmosphere size={planet.size} color={planet.color} />
+        )}
+      </group>
+    </group>
   );
 }
 
